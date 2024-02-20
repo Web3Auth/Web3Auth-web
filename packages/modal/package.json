@@ -50,7 +50,12 @@
   "name": "@web3auth/modal",
   "peerDependencies": {
     "@babel/runtime": "7.x",
-    "@solana/web3.js": "^1.x"
+    "@solana/web3.js": "^1.x",
+    "@walletconnect/sign-client": "^2.x",
+    "@walletconnect/types": "^2.x",
+    "@walletconnect/utils": "^2.x",
+    "react": "^18.x",
+    "react-dom": "^18.x"
   },
   "publishConfig": {
     "access": "public"
