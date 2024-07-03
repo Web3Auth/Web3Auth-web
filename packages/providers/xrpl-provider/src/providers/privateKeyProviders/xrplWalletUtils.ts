@@ -21,7 +21,7 @@ export async function getProviderHandlers({
   privKey: string;
   chainConfig: CustomChainConfig;
 }): Promise<IProviderHandlers> {
-  const client = new Client(chainConfig.wsTarget);
+  const client = new Client(chainConfig?.rpcUrls?.default?.webSocket?.[0]);
   await client.connect();
   return {
     getAccounts: async (_: JRPCRequest<unknown>): Promise<string[]> => {

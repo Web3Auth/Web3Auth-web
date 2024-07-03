@@ -72,8 +72,16 @@ export class SolanaWalletAdapter extends BaseSolanaAdapter<void> {
   async init(options: AdapterInitOptions = {}): Promise<void> {
     await super.init(options);
     super.checkInitializationRequirements();
-    const { chainId, blockExplorerUrl, displayName, rpcTarget, ticker, tickerName, logo } = this.chainConfig as CustomChainConfig;
-    const network: NetworkInterface = { chainId, rpcTarget, blockExplorerUrl, displayName, tickerName, ticker, logo };
+    const { id: chainId, blockExplorers, name, rpcUrls, nativeCurrency, logo } = this.chainConfig as CustomChainConfig;
+    const network: NetworkInterface = {
+      chainId: chainId.toString(16),
+      rpcTarget: rpcUrls?.default?.http?.[0],
+      blockExplorerUrl: blockExplorers?.default?.url,
+      displayName: name,
+      tickerName: nativeCurrency?.symbol,
+      ticker: nativeCurrency?.name,
+      logo,
+    };
 
     this.torusInstance = new Torus(this.torusWalletOptions);
     log.debug("initializing torus solana adapter init");
@@ -122,8 +130,16 @@ export class SolanaWalletAdapter extends BaseSolanaAdapter<void> {
         // some issue in solana wallet, always connecting to mainnet on init.
         // fallback to change network if not connected to correct one on login.
         if (error instanceof Web3AuthError && error.code === 5010) {
-          const { chainId, blockExplorerUrl, logo, displayName, rpcTarget, ticker, tickerName } = this.chainConfig as CustomChainConfig;
-          const network = { chainId, rpcTarget, blockExplorerUrl, displayName, tickerName, ticker, logo };
+          const { id: chainId, blockExplorers, name, rpcUrls, nativeCurrency, logo } = this.chainConfig as CustomChainConfig;
+          const network: NetworkInterface = {
+            chainId: chainId.toString(16),
+            rpcTarget: rpcUrls?.default?.http?.[0],
+            blockExplorerUrl: blockExplorers?.default?.url,
+            displayName: name,
+            tickerName: nativeCurrency?.symbol,
+            ticker: nativeCurrency?.name,
+            logo,
+          };
           await this.torusInstance.setProvider(network);
         } else {
           throw error;
@@ -172,16 +188,16 @@ export class SolanaWalletAdapter extends BaseSolanaAdapter<void> {
     this.addChainConfig(chainConfig);
   }
 
-  public async switchChain(params: { chainId: string }, init = false): Promise<void> {
+  public async switchChain(params: { chainId: number }, init = false): Promise<void> {
     super.checkSwitchChainRequirements(params, init);
     const chainConfig = this.getChainConfig(params.chainId) as CustomChainConfig;
     await this.torusInstance?.setProvider({
-      rpcTarget: chainConfig.rpcTarget,
-      chainId: chainConfig.chainId,
-      displayName: chainConfig.displayName,
-      blockExplorerUrl: chainConfig.blockExplorerUrl,
-      ticker: chainConfig.ticker,
-      tickerName: chainConfig.tickerName,
+      rpcTarget: chainConfig.rpcUrls?.default?.http?.[0],
+      chainId: chainConfig.id.toString(16),
+      displayName: chainConfig.name,
+      blockExplorerUrl: chainConfig.blockExplorers?.default?.url,
+      ticker: chainConfig.nativeCurrency?.name,
+      tickerName: chainConfig.nativeCurrency?.symbol,
       logo: chainConfig.logo || "https://images.web3auth.io/login-torus-solana.svg",
     });
     this.setAdapterSettings({ chainConfig: this.getChainConfig(params.chainId) as CustomChainConfig });

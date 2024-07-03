@@ -27,15 +27,15 @@ export class CommonJRPCProvider extends BaseProvider<CommonJRPCProviderConfig, C
     engine.push(networkMiddleware);
     const provider = providerFromEngine(engine);
     this.updateProviderEngineProxy(provider);
-    const newChainId = this.config.chainConfig.chainId;
-    if (this.state.chainId !== newChainId) {
+    const newChainId = this.config.chainConfig.id;
+    if (this.state.chainId !== newChainId.toString(16)) {
       this.emit("chainChanged", newChainId);
       this.emit("connect", { chainId: newChainId });
     }
-    this.update({ chainId: this.config.chainConfig.chainId });
+    this.update({ chainId: this.config.chainConfig.id.toString(16) });
   }
 
-  public async switchChain(params: { chainId: string }): Promise<void> {
+  public async switchChain(params: { chainId: number }): Promise<void> {
     if (!this._providerEngineProxy) throw providerErrors.custom({ message: "Provider is not initialized", code: 4902 });
     const chainConfig = this.getChainConfig(params.chainId);
     this.update({

@@ -80,7 +80,7 @@ export function createXRPLMiddleware(providerHandlers: IProviderHandlers): JRPCM
   ]);
 }
 
-export type AddXRPLChainParameter = CustomChainConfig & Pick<CustomChainConfig, "wsTarget">;
+export type AddXRPLChainParameter = CustomChainConfig;
 
 export interface IChainSwitchHandlers {
   addChainConfig: (req: JRPCRequest<AddXRPLChainParameter>) => Promise<void>;

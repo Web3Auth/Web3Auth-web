@@ -81,11 +81,11 @@ export class SolflareAdapter extends BaseSolanaAdapter<void> {
       this.status = ADAPTER_STATUS.CONNECTING;
       this.emit(ADAPTER_EVENTS.CONNECTING, { adapter: WALLET_ADAPTERS.SOLFLARE });
       let cluster: Cluster = "mainnet-beta";
-      if (this.chainConfig?.chainId === "0x1") {
+      if (this.chainConfig?.id === 1) {
         cluster = "mainnet-beta";
-      } else if (this.chainConfig?.chainId === "0x2") {
+      } else if (this.chainConfig?.id === 2) {
         cluster = "devnet";
-      } else if (this.chainConfig?.chainId === "0x3") {
+      } else if (this.chainConfig?.id === 3) {
         cluster = "testnet";
       } else {
         throw WalletLoginError.connectionError("Invalid chainId, solflare doesn't support custom solana networks");
@@ -144,7 +144,7 @@ export class SolflareAdapter extends BaseSolanaAdapter<void> {
     this.addChainConfig(chainConfig);
   }
 
-  public async switchChain(params: { chainId: string }, init = false): Promise<void> {
+  public async switchChain(params: { chainId: number }, init = false): Promise<void> {
     super.checkSwitchChainRequirements(params, init);
     await this.solflareProvider?.switchChain(params);
     this.setAdapterSettings({ chainConfig: this.getChainConfig(params.chainId) as CustomChainConfig });

@@ -36,12 +36,12 @@ export class TransactionFormatter {
 
   async getCommonConfiguration(): Promise<Common> {
     if (!this.chainConfig) throw new Error("Chain config not initialized");
-    const { displayName: name, chainId } = this.chainConfig;
+    const { name, id: chainId } = this.chainConfig;
     const hardfork = this.isEIP1559Compatible ? Hardfork.Paris : Hardfork.Berlin;
     const customChainParams = {
       name,
-      chainId: chainId === "loading" ? 0 : Number.parseInt(chainId, 16),
-      networkId: chainId === "loading" ? 0 : Number.parseInt(chainId, 16),
+      chainId,
+      networkId: chainId,
       defaultHardfork: hardfork,
     };
     return Common.custom(customChainParams);
@@ -156,7 +156,7 @@ export class TransactionFormatter {
     }
 
     clonedTxParams.type = this.isEIP1559Compatible ? TRANSACTION_ENVELOPE_TYPES.FEE_MARKET : TRANSACTION_ENVELOPE_TYPES.LEGACY;
-    clonedTxParams.chainId = this.chainConfig.chainId;
+    clonedTxParams.chainId = this.chainConfig.id;
     return clonedTxParams;
   }
 
@@ -222,9 +222,7 @@ export class TransactionFormatter {
 
   private async fetchGasFeeEstimateData(): Promise<GasData> {
     if (!this.chainConfig) throw new Error("Chain config not initialized");
-    const isLegacyGasAPICompatible = this.chainConfig.chainId === "0x1";
-
-    const chainId = Number.parseInt(this.chainConfig.chainId, 16);
+    const isLegacyGasAPICompatible = this.chainConfig.id === 1;
 
     let gasData: GasData;
 
@@ -232,8 +230,8 @@ export class TransactionFormatter {
       if (this.isEIP1559Compatible) {
         let estimates: EthereumGasFeeEstimates;
         try {
-          if (this.API_SUPPORTED_CHAINIDS.has(this.chainConfig.chainId)) {
-            estimates = await fetchEip1159GasEstimates(EIP1559APIEndpoint.replace("<chain_id>", `${chainId}`));
+          if (this.API_SUPPORTED_CHAINIDS.has(this.chainConfig.id.toString(16))) {
+            estimates = await fetchEip1159GasEstimates(EIP1559APIEndpoint.replace("<chain_id>", `${this.chainConfig.id.toString(16)}`));
           } else {
             throw new Error("Chain id not supported by api");
           }
@@ -245,7 +243,7 @@ export class TransactionFormatter {
           gasEstimateType: GAS_ESTIMATE_TYPES.FEE_MARKET,
         };
       } else if (isLegacyGasAPICompatible) {
-        const estimates = await fetchLegacyGasPriceEstimates(LegacyGasAPIEndpoint.replace("<chain_id>", `${chainId}`));
+        const estimates = await fetchLegacyGasPriceEstimates(LegacyGasAPIEndpoint.replace("<chain_id>", `${this.chainConfig.id.toString(16)}`));
         gasData = {
           gasFeeEstimates: estimates,
           gasEstimateType: GAS_ESTIMATE_TYPES.LEGACY,

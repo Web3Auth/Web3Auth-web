@@ -59,15 +59,14 @@ export class WalletConnectV2Provider extends BaseProvider<BaseProviderConfig, Wa
     await this.setupEngine(connector);
   }
 
-  public async switchChain({ chainId }: { chainId: string }): Promise<void> {
+  public async switchChain({ chainId }: { chainId: number }): Promise<void> {
     if (!this.connector)
       throw providerErrors.custom({ message: "Connector is not initialized, pass wallet connect connector in constructor", code: 4902 });
     const currentChainConfig = this.getChainConfig(chainId);
 
-    const { chainId: currentChainId } = this.config.chainConfig;
-    const currentNumChainId = parseInt(currentChainId, 16);
+    const { id: currentChainId } = this.config.chainConfig;
 
-    await switchChain({ connector: this.connector, chainId: currentNumChainId, newChainId: chainId });
+    await switchChain({ connector: this.connector, chainId: currentChainId, newChainId: chainId });
 
     this.configure({ chainConfig: currentChainConfig });
     await this.setupEngine(this.connector);
@@ -75,22 +74,21 @@ export class WalletConnectV2Provider extends BaseProvider<BaseProviderConfig, Wa
   }
 
   async addChain(chainConfig: CustomChainConfig): Promise<void> {
-    const { chainId: currentChainId } = this.config.chainConfig;
-    const numChainId = parseInt(currentChainId, 16);
+    const { id: currentChainId } = this.config.chainConfig;
 
     await addChain({
       connector: this.connector,
-      chainId: numChainId,
+      chainId: currentChainId,
       chainConfig: {
-        chainId: chainConfig.chainId,
-        chainName: chainConfig.displayName,
+        chainId: chainConfig.id.toString(16),
+        chainName: chainConfig.name,
         nativeCurrency: {
-          name: chainConfig.tickerName,
-          symbol: chainConfig.ticker.toLocaleUpperCase(),
-          decimals: (chainConfig.decimals || 18) as AddEthereumChainParameter["nativeCurrency"]["decimals"],
+          name: chainConfig.nativeCurrency?.name,
+          symbol: chainConfig.nativeCurrency?.symbol?.toLocaleUpperCase(),
+          decimals: (chainConfig.nativeCurrency?.decimals || 18) as AddEthereumChainParameter["nativeCurrency"]["decimals"],
         },
-        rpcUrls: [chainConfig.rpcTarget],
-        blockExplorerUrls: [chainConfig.blockExplorerUrl],
+        rpcUrls: [chainConfig?.rpcUrls?.default?.http?.[0]],
+        blockExplorerUrls: [chainConfig.blockExplorers?.default?.url],
         iconUrls: [chainConfig.logo],
       },
     });
@@ -100,17 +98,16 @@ export class WalletConnectV2Provider extends BaseProvider<BaseProviderConfig, Wa
 
   // no need to implement this method in wallet connect v2.
   protected async lookupNetwork(_: ISignClient): Promise<string> {
-    const newChainId = this.config.chainConfig.chainId;
-    this.update({ chainId: newChainId });
+    const newChainId = this.config.chainConfig.id;
+    this.update({ chainId: newChainId.toString(16) });
     this.emit("chainChanged", newChainId);
     this.emit("connect", { chainId: newChainId });
-    return this.config.chainConfig.chainId;
+    return this.config.chainConfig.id.toString(16);
   }
 
   private async setupEngine(connector: ISignClient): Promise<void> {
-    const { chainId } = this.config.chainConfig;
-    const numChainId = parseInt(chainId, 16);
-    const providerHandlers = getProviderHandlers({ connector, chainId: numChainId });
+    const { id: chainId } = this.config.chainConfig;
+    const providerHandlers = getProviderHandlers({ connector, chainId });
     const jrpcRes = await getAccounts(connector);
 
     this.update({
@@ -133,19 +130,21 @@ export class WalletConnectV2Provider extends BaseProvider<BaseProviderConfig, Wa
         const { chainId, chainName, rpcUrls, blockExplorerUrls, nativeCurrency, iconUrls } = params;
         this.addChain({
           chainNamespace: CHAIN_NAMESPACES.EIP155,
-          chainId,
-          ticker: nativeCurrency?.symbol || "ETH",
-          tickerName: nativeCurrency?.name || "Ether",
-          displayName: chainName,
-          rpcTarget: rpcUrls[0],
-          blockExplorerUrl: blockExplorerUrls?.[0] || "",
-          decimals: nativeCurrency?.decimals || 18,
+          id: parseInt(chainId, 16),
+          nativeCurrency: {
+            name: nativeCurrency?.name || "Ether",
+            symbol: nativeCurrency?.symbol || "ETH",
+            decimals: nativeCurrency?.decimals || 18,
+          },
+          name: chainName,
+          rpcUrls: { default: { http: rpcUrls } },
+          blockExplorers: { default: { name: chainName, url: blockExplorerUrls?.[0] } },
           logo: iconUrls?.[0] || "https://images.toruswallet.io/eth.svg",
         });
       },
       switchChain: async (params: { chainId: string }): Promise<void> => {
         const { chainId } = params;
-        await this.switchChain({ chainId });
+        await this.switchChain({ chainId: parseInt(chainId, 16) });
       },
     };
     const chainSwitchMiddleware = createChainSwitchMiddleware(chainSwitchHandlers);
@@ -201,7 +200,7 @@ export class WalletConnectV2Provider extends BaseProvider<BaseProviderConfig, Wa
           const maybeConfig = getChainConfig(CHAIN_NAMESPACES.EIP155, connectedHexChainId);
           // Handle rpcUrl update
           this.configure({
-            chainConfig: { ...maybeConfig, chainId: connectedHexChainId, chainNamespace: CHAIN_NAMESPACES.EIP155 },
+            chainConfig: { ...maybeConfig, id: parseInt(connectedHexChainId, 16), chainNamespace: CHAIN_NAMESPACES.EIP155 },
           });
           await this.setupEngine(connector);
         }

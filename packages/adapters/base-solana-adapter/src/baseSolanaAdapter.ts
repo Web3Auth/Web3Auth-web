@@ -23,7 +23,7 @@ export abstract class BaseSolanaAdapter<T> extends BaseAdapter<T> {
   async authenticateUser(): Promise<UserAuthInfo> {
     if (!this.provider || this.status !== ADAPTER_STATUS.CONNECTED) throw WalletLoginError.notConnectedError();
 
-    const { chainNamespace, chainId } = this.chainConfig;
+    const { chainNamespace, id: chainId } = this.chainConfig;
 
     const accounts = await this.provider.request<never, string[]>({
       method: "getAccounts",
@@ -41,7 +41,7 @@ export abstract class BaseSolanaAdapter<T> extends BaseAdapter<T> {
         domain: window.location.origin,
         uri: window.location.href,
         address: accounts[0],
-        chainId: parseInt(chainId, 16),
+        chainId,
         version: "1",
         nonce: Math.random().toString(36).slice(2),
         issuedAt: new Date().toISOString(),

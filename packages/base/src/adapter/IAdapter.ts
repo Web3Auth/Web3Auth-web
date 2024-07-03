@@ -65,7 +65,7 @@ export interface IBaseProvider<T> extends IProvider {
   currentChainConfig: CustomChainConfig;
   setupProvider(provider: T): Promise<void>;
   addChain(chainConfig: CustomChainConfig): void;
-  switchChain(params: { chainId: string }): Promise<void>;
+  switchChain(params: { chainId: number }): Promise<void>;
   updateProviderEngineProxy(provider: SafeEventEmitterProvider): void;
 }
 
@@ -90,7 +90,7 @@ export interface IAdapter<T> extends SafeEventEmitter {
   getUserInfo(): Promise<Partial<UserInfo>>;
   enableMFA(params?: T): Promise<void>;
   setAdapterSettings(adapterSettings: BaseAdapterSettings): void;
-  switchChain(params: { chainId: string }): Promise<void>;
+  switchChain(params: { chainId: number }): Promise<void>;
   authenticateUser(): Promise<UserAuthInfo>;
 }
 
@@ -117,7 +117,7 @@ export abstract class BaseAdapter<T> extends SafeEventEmitter implements IAdapte
   // before calling init function.
   protected chainConfig: CustomChainConfig | null = null;
 
-  protected knownChainConfigs: Record<CustomChainConfig["chainId"], CustomChainConfig> = {};
+  protected knownChainConfigs: Record<CustomChainConfig["id"], CustomChainConfig> = {};
 
   public abstract adapterNamespace: AdapterNamespaceType;
 
@@ -164,7 +164,7 @@ export abstract class BaseAdapter<T> extends SafeEventEmitter implements IAdapte
       this.currentChainNamespace = customChainConfig.chainNamespace;
       // chainId is optional in this function.
       // we go with mainnet chainId by default.
-      const defaultChainConfig = getChainConfig(customChainConfig.chainNamespace, customChainConfig.chainId);
+      const defaultChainConfig = getChainConfig(customChainConfig.chainNamespace, customChainConfig.id);
       // NOTE: It is being forced casted to CustomChainConfig to handle OTHER Chainnamespace
       // where chainConfig is not required.
       const finalChainConfig = { ...(defaultChainConfig || {}), ...customChainConfig } as CustomChainConfig;
@@ -189,11 +189,11 @@ export abstract class BaseAdapter<T> extends SafeEventEmitter implements IAdapte
   checkInitializationRequirements(): void {
     if (!this.clientId) throw WalletInitializationError.invalidParams("Please initialize Web3Auth with a valid clientId in constructor");
     if (!this.chainConfig) throw WalletInitializationError.invalidParams("rpcTarget is required in chainConfig");
-    if (!this.chainConfig.rpcTarget && this.chainConfig.chainNamespace !== CHAIN_NAMESPACES.OTHER) {
+    if (!this.chainConfig.rpcUrls.default && this.chainConfig.chainNamespace !== CHAIN_NAMESPACES.OTHER) {
       throw WalletInitializationError.invalidParams("rpcTarget is required in chainConfig");
     }
 
-    if (!this.chainConfig.chainId && this.chainConfig.chainNamespace !== CHAIN_NAMESPACES.OTHER) {
+    if (!this.chainConfig.id && this.chainConfig.chainNamespace !== CHAIN_NAMESPACES.OTHER) {
       throw WalletInitializationError.invalidParams("chainID is required in chainConfig");
     }
     if (this.status === ADAPTER_STATUS.NOT_READY) return;
@@ -212,7 +212,7 @@ export abstract class BaseAdapter<T> extends SafeEventEmitter implements IAdapte
     }
   }
 
-  checkSwitchChainRequirements({ chainId }: { chainId: string }, init = false): void {
+  checkSwitchChainRequirements({ chainId }: { chainId: number }, init = false): void {
     if (!init && !this.provider) throw WalletLoginError.notConnectedError("Not connected with wallet.");
     if (!this.knownChainConfigs[chainId]) throw WalletLoginError.chainConfigNotAdded("Invalid chainId");
   }
@@ -223,14 +223,14 @@ export abstract class BaseAdapter<T> extends SafeEventEmitter implements IAdapte
   }
 
   protected addChainConfig(chainConfig: CustomChainConfig): void {
-    const currentConfig = this.knownChainConfigs[chainConfig.chainId];
-    this.knownChainConfigs[chainConfig.chainId] = {
+    const currentConfig = this.knownChainConfigs[chainConfig.id];
+    this.knownChainConfigs[chainConfig.id] = {
       ...(currentConfig || {}),
       ...chainConfig,
     };
   }
 
-  protected getChainConfig(chainId: string): CustomChainConfig | null {
+  protected getChainConfig(chainId: number): CustomChainConfig | null {
     return this.knownChainConfigs[chainId] || null;
   }
 
@@ -241,7 +241,7 @@ export abstract class BaseAdapter<T> extends SafeEventEmitter implements IAdapte
   abstract enableMFA(params?: T): Promise<void>;
   abstract authenticateUser(): Promise<UserAuthInfo>;
   abstract addChain(chainConfig: CustomChainConfig): Promise<void>;
-  abstract switchChain(params: { chainId: string }): Promise<void>;
+  abstract switchChain(params: { chainId: number }): Promise<void>;
 }
 
 export interface BaseAdapterConfig {

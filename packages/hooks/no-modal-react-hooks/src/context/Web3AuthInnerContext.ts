@@ -168,7 +168,7 @@ export function Web3AuthInnerProvider(params: PropsWithChildren<Web3AuthProvider
     async (chainConfig: CustomChainConfig) => {
       if (!web3Auth) throw WalletInitializationError.notReady();
       await web3Auth.addChain(chainConfig);
-      await web3Auth.switchChain({ chainId: chainConfig.chainId });
+      await web3Auth.switchChain({ chainId: chainConfig.id });
     },
     [web3Auth]
   );
@@ -187,7 +187,7 @@ export function Web3AuthInnerProvider(params: PropsWithChildren<Web3AuthProvider
   );
 
   const switchChain = useCallback(
-    (chainParams: { chainId: string }) => {
+    (chainParams: { chainId: number }) => {
       if (!web3Auth) throw WalletInitializationError.notReady();
       return web3Auth.switchChain(chainParams);
     },

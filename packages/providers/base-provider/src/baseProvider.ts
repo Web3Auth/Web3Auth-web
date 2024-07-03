@@ -31,14 +31,15 @@ export abstract class BaseProvider<C extends BaseProviderConfig, S extends BaseP
   constructor({ config, state }: { config: C; state?: S }) {
     super({ config, state });
     if (!config.chainConfig) throw WalletInitializationError.invalidProviderConfigError("Please provide chainConfig");
-    if (!config.chainConfig.chainId) throw WalletInitializationError.invalidProviderConfigError("Please provide chainId inside chainConfig");
-    if (!config.chainConfig.rpcTarget) throw WalletInitializationError.invalidProviderConfigError("Please provide rpcTarget inside chainConfig");
+    if (!config.chainConfig.id) throw WalletInitializationError.invalidProviderConfigError("Please provide chainId inside chainConfig");
+    if (!config.chainConfig.rpcUrls?.default?.http?.length)
+      throw WalletInitializationError.invalidProviderConfigError("Please provide rpcTarget inside chainConfig");
     this.defaultState = {
       chainId: "loading",
     } as S;
     this.defaultConfig = {
       chainConfig: config.chainConfig,
-      networks: { [config.chainConfig.chainId]: config.chainConfig },
+      networks: { [config.chainConfig.id]: config.chainConfig },
     } as C;
     super.initialize();
   }
@@ -101,14 +102,14 @@ export abstract class BaseProvider<C extends BaseProviderConfig, S extends BaseP
   }
 
   public addChain(chainConfig: CustomChainConfig): void {
-    if (!chainConfig.chainId) throw rpcErrors.invalidParams("chainId is required");
-    if (!chainConfig.rpcTarget) throw rpcErrors.invalidParams("chainId is required");
+    if (!chainConfig.id) throw rpcErrors.invalidParams("chainId is required");
+    if (!chainConfig.rpcUrls.default.http[0]) throw rpcErrors.invalidParams("chainId is required");
     this.configure({
-      networks: { ...this.config.networks, [chainConfig.chainId]: chainConfig },
+      networks: { ...this.config.networks, [chainConfig.id]: chainConfig },
     } as C);
   }
 
-  public getChainConfig(chainId: string): CustomChainConfig | null {
+  public getChainConfig(chainId: number): CustomChainConfig | null {
     const chainConfig = this.config.networks?.[chainId];
     if (!chainConfig) throw rpcErrors.invalidRequest(`Chain ${chainId} is not supported, please add chainConfig for it`);
     return chainConfig;
@@ -129,7 +130,7 @@ export abstract class BaseProvider<C extends BaseProviderConfig, S extends BaseP
 
   abstract setupProvider(provider: P): Promise<void>;
 
-  abstract switchChain(params: { chainId: string }): Promise<void>;
+  abstract switchChain(params: { chainId: number }): Promise<void>;
 
   protected abstract lookupNetwork(provider?: P): Promise<string | void>;
 }

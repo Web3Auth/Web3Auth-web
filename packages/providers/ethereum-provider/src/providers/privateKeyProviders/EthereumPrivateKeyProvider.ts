@@ -74,7 +74,7 @@ export class EthereumPrivateKeyProvider extends BaseProvider<BaseProviderConfig,
     }
   }
 
-  public async switchChain(params: { chainId: string }): Promise<void> {
+  public async switchChain(params: { chainId: number }): Promise<void> {
     if (!this._providerEngineProxy) throw providerErrors.custom({ message: "Provider is not initialized", code: 4902 });
     const chainConfig = this.getChainConfig(params.chainId);
     this.update({
@@ -87,19 +87,19 @@ export class EthereumPrivateKeyProvider extends BaseProvider<BaseProviderConfig,
 
   protected async lookupNetwork(): Promise<string> {
     if (!this._providerEngineProxy) throw providerErrors.custom({ message: "Provider is not initialized", code: 4902 });
-    const { chainId } = this.config.chainConfig;
+    const { id: chainId } = this.config.chainConfig;
     if (!chainId) throw rpcErrors.invalidParams("chainId is required while lookupNetwork");
     const network = await this._providerEngineProxy.request<[], string>({
       method: "net_version",
       params: [],
     });
 
-    if (parseInt(chainId, 16) !== parseInt(network, 10)) throw providerErrors.chainDisconnected(`Invalid network, net_version is: ${network}`);
-    if (this.state.chainId !== chainId) {
+    if (chainId !== parseInt(network, 10)) throw providerErrors.chainDisconnected(`Invalid network, net_version is: ${network}`);
+    if (this.state.chainId !== chainId.toString(16)) {
       this.emit("chainChanged", chainId);
       this.emit("connect", { chainId });
     }
-    this.update({ chainId });
+    this.update({ chainId: chainId.toString(16) });
     return network;
   }
 
@@ -109,19 +109,21 @@ export class EthereumPrivateKeyProvider extends BaseProvider<BaseProviderConfig,
         const { chainId, chainName, rpcUrls, blockExplorerUrls, nativeCurrency, iconUrls } = params;
         this.addChain({
           chainNamespace: CHAIN_NAMESPACES.EIP155,
-          chainId,
-          ticker: nativeCurrency?.symbol || "ETH",
-          tickerName: nativeCurrency?.name || "Ether",
-          displayName: chainName,
-          rpcTarget: rpcUrls[0],
-          blockExplorerUrl: blockExplorerUrls?.[0] || "",
-          decimals: nativeCurrency?.decimals || 18,
+          id: parseInt(chainId, 16),
+          nativeCurrency: {
+            symbol: nativeCurrency?.symbol || "ETH",
+            name: nativeCurrency?.name || "Ether",
+            decimals: nativeCurrency?.decimals || 18,
+          },
+          name: chainName,
+          rpcUrls: { default: { http: rpcUrls } },
+          blockExplorers: { default: { name: chainName, url: blockExplorerUrls?.[0] } },
           logo: iconUrls?.[0] || "https://images.toruswallet.io/eth.svg",
         });
       },
       switchChain: async (params: { chainId: string }): Promise<void> => {
         const { chainId } = params;
-        await this.switchChain({ chainId });
+        await this.switchChain({ chainId: parseInt(chainId, 16) });
       },
     };
     const chainSwitchMiddleware = createChainSwitchMiddleware(chainSwitchHandlers);

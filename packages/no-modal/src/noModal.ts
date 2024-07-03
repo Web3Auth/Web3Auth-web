@@ -68,7 +68,7 @@ export class Web3AuthNoModal extends SafeEventEmitter implements IWeb3Auth {
     this.coreOptions = {
       ...options,
       chainConfig: {
-        ...(getChainConfig(options.chainConfig?.chainNamespace, options.chainConfig?.chainId) || {}),
+        ...(getChainConfig(options.chainConfig?.chainNamespace, options.chainConfig?.id) || {}),
         ...options.chainConfig,
       },
     };
@@ -232,7 +232,7 @@ export class Web3AuthNoModal extends SafeEventEmitter implements IWeb3Auth {
     throw WalletInitializationError.notReady(`No wallet is ready`);
   }
 
-  public async switchChain(params: { chainId: string }): Promise<void> {
+  public async switchChain(params: { chainId: number }): Promise<void> {
     if (this.status === ADAPTER_STATUS.CONNECTED && this.connectedAdapterName)
       return this.walletAdapters[this.connectedAdapterName].switchChain(params);
     if (this.commonJRPCProvider) {

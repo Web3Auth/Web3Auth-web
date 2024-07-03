@@ -1,4 +1,3 @@
-import type { EthereumProviderConfig } from "@toruslabs/ethereum-controllers";
 import { SafeEventEmitter } from "@toruslabs/openlogin-jrpc";
 import { type WhiteLabelData } from "@toruslabs/openlogin-utils";
 import {
@@ -90,19 +89,32 @@ export class WalletServicesPlugin extends SafeEventEmitter implements IPlugin {
     this.wsEmbedInstance.web3AuthNetwork = this.web3auth.coreOptions.web3AuthNetwork;
     this.subscribeToWeb3AuthEvents(web3auth);
     const connectedChainConfig = web3auth.coreOptions.chainConfig as CustomChainConfig;
-    if (!connectedChainConfig.blockExplorerUrl) throw WalletServicesPluginError.invalidParams("blockExplorerUrl is required in chainConfig");
-    if (!connectedChainConfig.displayName) throw WalletServicesPluginError.invalidParams("displayName is required in chainConfig");
+    if (!connectedChainConfig.blockExplorers?.default?.url)
+      throw WalletServicesPluginError.invalidParams("blockExplorerUrl is required in chainConfig");
+    if (!connectedChainConfig.name) throw WalletServicesPluginError.invalidParams("displayName is required in chainConfig");
     if (!connectedChainConfig.logo) throw WalletServicesPluginError.invalidParams("logo is required in chainConfig");
-    if (!connectedChainConfig.ticker) throw WalletServicesPluginError.invalidParams("ticker is required in chainConfig");
-    if (!connectedChainConfig.tickerName) throw WalletServicesPluginError.invalidParams("tickerName is required in chainConfig");
+    if (!connectedChainConfig.nativeCurrency?.name) throw WalletServicesPluginError.invalidParams("native currency name is required in chainConfig");
+    if (!connectedChainConfig.nativeCurrency?.symbol)
+      throw WalletServicesPluginError.invalidParams("native currency symbol is required in chainConfig");
 
     const finalInitOptions = {
       ...this.walletInitOptions,
-      chainConfig: connectedChainConfig as EthereumProviderConfig,
+      chainConfig: {
+        chainId: connectedChainConfig.id.toString(16),
+        displayName: connectedChainConfig.name,
+        chainNamespace: connectedChainConfig.chainNamespace,
+        blockExplorerUrl: connectedChainConfig.blockExplorers?.default?.url,
+        logo: connectedChainConfig.logo,
+        tickerName: connectedChainConfig.nativeCurrency.symbol,
+        ticker: connectedChainConfig.nativeCurrency.name,
+        isTestnet: connectedChainConfig.testnet,
+        rpcTarget: connectedChainConfig.rpcUrls?.default?.http?.[0],
+        decimals: connectedChainConfig.nativeCurrency.decimals || 18,
+        wsTarget: connectedChainConfig.rpcUrls?.default?.webSocket?.[0],
+      },
       enableLogging: this.web3auth.coreOptions?.enableLogging,
       whiteLabel: mergedWhitelabelSettings,
     };
-
     await this.wsEmbedInstance.init(finalInitOptions);
     this.isInitialized = true;
     this.status = PLUGIN_STATUS.READY;
@@ -256,11 +268,11 @@ export class WalletServicesPlugin extends SafeEventEmitter implements IPlugin {
   private async setChainID(chainId: number): Promise<void> {
     const [sessionConfig, walletServicesSessionConfig] = await Promise.all([this.sessionConfig(), this.walletServicesSessionConfig()]);
     const { chainConfig } = sessionConfig || {};
-    if (!chainConfig.blockExplorerUrl) throw WalletServicesPluginError.invalidParams("blockExplorerUrl is required in chainConfig");
-    if (!chainConfig.displayName) throw WalletServicesPluginError.invalidParams("displayName is required in chainConfig");
+    if (!chainConfig.blockExplorers?.default?.url) throw WalletServicesPluginError.invalidParams("blockExplorerUrl is required in chainConfig");
+    if (!chainConfig.name) throw WalletServicesPluginError.invalidParams("displayName is required in chainConfig");
     if (!chainConfig.logo) throw WalletServicesPluginError.invalidParams("logo is required in chainConfig");
-    if (!chainConfig.ticker) throw WalletServicesPluginError.invalidParams("ticker is required in chainConfig");
-    if (!chainConfig.tickerName) throw WalletServicesPluginError.invalidParams("tickerName is required in chainConfig");
+    if (!chainConfig.nativeCurrency?.name) throw WalletServicesPluginError.invalidParams("native currency name is required in chainConfig");
+    if (!chainConfig.nativeCurrency?.symbol) throw WalletServicesPluginError.invalidParams("native currency symbol is required in chainConfig");
 
     if (chainId !== walletServicesSessionConfig.chainId && chainConfig) {
       try {
@@ -269,14 +281,14 @@ export class WalletServicesPlugin extends SafeEventEmitter implements IPlugin {
             method: "wallet_addEthereumChain",
             params: [
               {
-                chainId: chainConfig.chainId,
-                chainName: chainConfig.displayName,
-                rpcUrls: [chainConfig.rpcTarget],
-                blockExplorerUrls: [chainConfig.blockExplorerUrl],
+                chainId: chainConfig.id,
+                chainName: chainConfig.name,
+                rpcUrls: [chainConfig.rpcUrls?.default?.http?.[0]],
+                blockExplorerUrls: [chainConfig.blockExplorers?.default?.url],
                 nativeCurrency: {
-                  name: chainConfig.tickerName,
-                  symbol: chainConfig.ticker,
-                  decimals: chainConfig.decimals || 18,
+                  name: chainConfig.nativeCurrency.name,
+                  symbol: chainConfig.nativeCurrency.symbol,
+                  decimals: chainConfig.nativeCurrency.decimals || 18,
                 },
                 iconUrls: [chainConfig.logo],
               },
@@ -289,7 +301,7 @@ export class WalletServicesPlugin extends SafeEventEmitter implements IPlugin {
 
         await this.wsEmbedInstance.provider?.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: chainConfig.chainId }],
+          params: [{ chainId: chainConfig.id.toString(16) }],
         });
       } catch (error) {
         // TODO: throw more specific error from the controller

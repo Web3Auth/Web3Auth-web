@@ -98,9 +98,9 @@ export async function switchChain({
 }: {
   connector: ISignClient;
   chainId: number;
-  newChainId: string;
+  newChainId: number;
 }): Promise<void> {
-  await sendJrpcRequest<string, { chainId: string }[]>(connector, chainId, "wallet_switchEthereumChain", [{ chainId: newChainId }]);
+  await sendJrpcRequest<string, { chainId: string }[]>(connector, chainId, "wallet_switchEthereumChain", [{ chainId: newChainId.toString(16) }]);
 }
 
 export async function addChain({

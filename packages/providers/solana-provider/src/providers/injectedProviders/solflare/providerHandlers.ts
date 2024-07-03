@@ -17,7 +17,7 @@ export const getSolflareHandlers = (injectedProvider: SolflareWallet, getProvide
 
     const transaction = await injectedProvider.signTransaction(req.params.message);
     const chainConfig = (await provider.request<never, CustomChainConfig>({ method: "solana_provider_config" })) as CustomChainConfig;
-    const conn = new Connection(chainConfig.rpcTarget);
+    const conn = new Connection(chainConfig.rpcUrls?.default?.http?.[0]);
     const res = await conn.sendRawTransaction(transaction.serialize());
     return { signature: res };
   };

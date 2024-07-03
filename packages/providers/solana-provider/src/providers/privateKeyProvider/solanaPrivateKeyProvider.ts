@@ -77,7 +77,7 @@ export class SolanaPrivateKeyProvider extends BaseProvider<BaseProviderConfig, S
     }
   }
 
-  public async switchChain(params: { chainId: string }): Promise<void> {
+  public async switchChain(params: { chainId: number }): Promise<void> {
     if (!this._providerEngineProxy) throw providerErrors.custom({ message: "Provider is not initialized", code: 4902 });
     const chainConfig = this.getChainConfig(params.chainId);
     this.update({
@@ -96,9 +96,11 @@ export class SolanaPrivateKeyProvider extends BaseProvider<BaseProviderConfig, S
     });
     const { chainConfig } = this.config;
     if (health !== "ok")
-      throw WalletInitializationError.rpcConnectionError(`Failed to lookup network for following rpc target: ${chainConfig.rpcTarget}`);
-    this.update({ chainId: chainConfig.chainId });
-    if (this.state.chainId !== chainConfig.chainId) {
+      throw WalletInitializationError.rpcConnectionError(
+        `Failed to lookup network for following rpc target: ${chainConfig.rpcUrls?.default?.http?.[0]}`
+      );
+    this.update({ chainId: chainConfig.id.toString(16) });
+    if (this.state.chainId !== chainConfig.id.toString(16)) {
       this.emit("chainChanged", this.state.chainId);
       this.emit("connect", { chainId: this.state.chainId });
     }
@@ -116,20 +118,22 @@ export class SolanaPrivateKeyProvider extends BaseProvider<BaseProviderConfig, S
         if (!nativeCurrency) throw rpcErrors.invalidParams("Missing nativeCurrency in chainParams");
         this.addChain({
           chainNamespace: CHAIN_NAMESPACES.SOLANA,
-          chainId,
-          ticker: nativeCurrency?.symbol || "SOL",
-          tickerName: nativeCurrency?.name || "Solana",
-          displayName: chainName,
-          rpcTarget: rpcUrls[0],
-          blockExplorerUrl: blockExplorerUrls?.[0] || "",
-          decimals: nativeCurrency?.decimals || 9,
+          id: parseInt(chainId, 16),
+          nativeCurrency: {
+            symbol: nativeCurrency?.symbol || "SOL",
+            name: nativeCurrency?.name || "Solana",
+            decimals: nativeCurrency?.decimals || 9,
+          },
+          name: chainName,
+          rpcUrls: { default: { http: rpcUrls } },
+          blockExplorers: { default: { name: chainName, url: blockExplorerUrls?.[0] } },
           logo: iconUrls?.[0] || "https://images.toruswallet.io/sol.svg",
         });
       },
       switchSolanaChain: async (req: JRPCRequest<{ chainId: string }>): Promise<void> => {
         if (!req.params) throw rpcErrors.invalidParams("Missing request params");
         if (!req.params.chainId) throw rpcErrors.invalidParams("Missing chainId");
-        await this.switchChain(req.params);
+        await this.switchChain({ chainId: parseInt(req.params.chainId, 16) });
       },
     };
     const chainSwitchMiddleware = createChainSwitchMiddleware(chainSwitchHandlers);

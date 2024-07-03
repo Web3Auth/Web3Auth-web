@@ -132,7 +132,7 @@ export class Web3Auth extends Web3AuthNoModal implements IWeb3AuthModal {
           const defaultOptions = getOpenloginDefaultOptions();
           const { clientId, useCoreKitKey, chainConfig, web3AuthNetwork, sessionTime, privateKeyProvider } = this.coreOptions;
           const finalChainConfig = {
-            ...getChainConfig(providedChainConfig.chainNamespace, this.coreOptions.chainConfig?.chainId),
+            ...getChainConfig(providedChainConfig.chainNamespace, this.coreOptions.chainConfig?.id),
             ...chainConfig,
           } as CustomChainConfig;
           if (!privateKeyProvider) {
@@ -189,7 +189,7 @@ export class Web3Auth extends Web3AuthNoModal implements IWeb3AuthModal {
         // and chainNamespace.
         if (!adapter.chainConfigProxy) {
           const chainConfig = {
-            ...getChainConfig(providedChainConfig.chainNamespace, this.coreOptions.chainConfig?.chainId),
+            ...getChainConfig(providedChainConfig.chainNamespace, this.coreOptions.chainConfig?.id),
             ...this.coreOptions.chainConfig,
           } as CustomChainConfig;
           this.walletAdapters[adapterName].setAdapterSettings({ chainConfig });

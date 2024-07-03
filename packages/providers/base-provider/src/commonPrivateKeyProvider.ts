@@ -63,7 +63,7 @@ export class CommonPrivateKeyProvider extends BaseProvider<BaseProviderConfig, C
     }
   }
 
-  public async switchChain(_: { chainId: string }): Promise<void> {
+  public async switchChain(_: { chainId: number }): Promise<void> {
     return Promise.resolve();
   }
 

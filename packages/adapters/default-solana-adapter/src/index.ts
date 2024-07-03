@@ -5,7 +5,7 @@ export const getDefaultExternalAdapters = async (params: { options: IWeb3AuthCor
   const { clientId, chainConfig, sessionTime, web3AuthNetwork, useCoreKitKey } = options;
   if (!Object.values(CHAIN_NAMESPACES).includes(chainConfig.chainNamespace)) throw new Error(`Invalid chainNamespace: ${chainConfig.chainNamespace}`);
   const finalChainConfig = {
-    ...(getChainConfig(chainConfig.chainNamespace, chainConfig?.chainId) as CustomChainConfig),
+    ...(getChainConfig(chainConfig.chainNamespace, chainConfig?.id) as CustomChainConfig),
     ...(chainConfig || {}),
   };
   const [{ SolanaWalletAdapter }, { PhantomAdapter }] = await Promise.all([

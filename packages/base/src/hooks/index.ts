@@ -18,7 +18,7 @@ export interface IBaseWeb3AuthHookContext {
   getPlugin(pluginName: string): IPlugin | null;
   authenticateUser(): Promise<UserAuthInfo>;
   addChain(chainConfig: CustomChainConfig): Promise<void>;
-  switchChain(params: { chainId: string }): Promise<void>;
+  switchChain(params: { chainId: number }): Promise<void>;
 }
 
 export interface IBaseWalletServicesHookContext {

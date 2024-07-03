@@ -70,14 +70,14 @@ export class TorusWalletAdapter extends BaseEvmAdapter<never> {
     await super.init(options);
     super.checkInitializationRequirements();
 
-    const { chainId, blockExplorerUrl, displayName, rpcTarget, ticker, tickerName } = this.chainConfig as CustomChainConfig;
+    const { id, blockExplorers, name, rpcUrls, nativeCurrency } = this.chainConfig as CustomChainConfig;
     const network: NetworkInterface = {
-      chainId: Number.parseInt(chainId, 16),
-      host: rpcTarget,
-      blockExplorer: blockExplorerUrl,
-      networkName: displayName,
-      ticker,
-      tickerName,
+      chainId: id,
+      host: rpcUrls?.default?.http?.[0],
+      blockExplorer: blockExplorers?.default?.url,
+      networkName: name,
+      ticker: nativeCurrency?.symbol,
+      tickerName: nativeCurrency?.name,
       // decimals: decimals || 18,
     };
 
@@ -111,15 +111,15 @@ export class TorusWalletAdapter extends BaseEvmAdapter<never> {
     try {
       await this.torusInstance.login(this.loginSettings);
       const chainId = await this.torusInstance.provider.request<string>({ method: "eth_chainId" });
-      if (chainId && parseInt(chainId) !== parseInt((this.chainConfig as CustomChainConfig).chainId, 16)) {
-        const { chainId: _chainId, blockExplorerUrl, displayName, rpcTarget, ticker, tickerName } = this.chainConfig as CustomChainConfig;
+      if (chainId && parseInt(chainId) !== this.chainConfig.id) {
+        const { id: _chainId, blockExplorers, name, rpcUrls, nativeCurrency } = this.chainConfig as CustomChainConfig;
         const network: NetworkInterface = {
-          chainId: Number.parseInt(_chainId, 16),
-          host: rpcTarget,
-          blockExplorer: blockExplorerUrl,
-          networkName: displayName,
-          tickerName,
-          ticker,
+          chainId: _chainId,
+          host: rpcUrls?.default?.http?.[0],
+          blockExplorer: blockExplorers?.default?.url,
+          networkName: name,
+          tickerName: nativeCurrency?.symbol,
+          ticker: nativeCurrency?.name,
         };
         // in some cases when user manually switches chain and relogin then adapter will not connect to initially passed
         // chainConfig but will connect to the one that user switched to.
@@ -128,10 +128,10 @@ export class TorusWalletAdapter extends BaseEvmAdapter<never> {
           ...network,
         });
         const updatedChainID = await this.torusInstance.ethereum.request<string>({ method: "eth_chainId" });
-        if (updatedChainID && parseInt(updatedChainID) !== parseInt((this.chainConfig as CustomChainConfig).chainId, 16)) {
+        if (updatedChainID && parseInt(updatedChainID) !== this.chainConfig.id) {
           throw WalletInitializationError.fromCode(
             5000,
-            `Not connected to correct chainId. Expected: ${(this.chainConfig as CustomChainConfig).chainId}, Current: ${updatedChainID}`
+            `Not connected to correct chainId. Expected: ${this.chainConfig.id}, Current: ${updatedChainID}`
           );
         }
       }
@@ -192,7 +192,7 @@ export class TorusWalletAdapter extends BaseEvmAdapter<never> {
     this.addChainConfig(chainConfig);
   }
 
-  public async switchChain(params: { chainId: string }, init = false): Promise<void> {
+  public async switchChain(params: { chainId: number }, init = false): Promise<void> {
     super.checkSwitchChainRequirements(params, init);
     // TODO: add these in torus wallet.
     // await this.torusInstance?.provider.request({
@@ -201,12 +201,12 @@ export class TorusWalletAdapter extends BaseEvmAdapter<never> {
     // });
     const chainConfig = this.getChainConfig(params.chainId) as CustomChainConfig;
     await this.torusInstance?.setProvider({
-      host: chainConfig.rpcTarget,
-      chainId: parseInt(chainConfig.chainId, 16),
-      networkName: chainConfig.displayName,
-      blockExplorer: chainConfig.blockExplorerUrl,
-      ticker: chainConfig.ticker,
-      tickerName: chainConfig.tickerName,
+      host: chainConfig.rpcUrls?.default?.http?.[0],
+      chainId: chainConfig.id,
+      networkName: chainConfig.name,
+      blockExplorer: chainConfig.blockExplorers?.default?.url,
+      ticker: chainConfig.nativeCurrency?.symbol,
+      tickerName: chainConfig.nativeCurrency?.name,
     });
     this.setAdapterSettings({ chainConfig: this.getChainConfig(params.chainId) as CustomChainConfig });
   }

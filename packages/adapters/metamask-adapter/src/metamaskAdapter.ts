@@ -101,9 +101,9 @@ class MetamaskAdapter extends BaseEvmAdapter<void> {
     try {
       await this.metamaskProvider.request({ method: "eth_requestAccounts" });
       const { chainId } = this.metamaskProvider;
-      if (chainId !== (this.chainConfig as CustomChainConfig).chainId) {
+      if (chainId !== this.chainConfig.id.toString(16)) {
         await this.addChain(this.chainConfig as CustomChainConfig, true);
-        await this.switchChain(this.chainConfig as CustomChainConfig, true);
+        await this.switchChain({ chainId: this.chainConfig.id }, true);
       }
       this.status = ADAPTER_STATUS.CONNECTED;
       if (!this.provider) throw WalletLoginError.notConnectedError("Failed to connect with provider");
@@ -153,15 +153,11 @@ class MetamaskAdapter extends BaseEvmAdapter<void> {
       method: "wallet_addEthereumChain",
       params: [
         {
-          chainId: chainConfig.chainId,
-          chainName: chainConfig.displayName,
-          rpcUrls: [chainConfig.rpcTarget],
-          blockExplorerUrls: [chainConfig.blockExplorerUrl],
-          nativeCurrency: {
-            name: chainConfig.tickerName,
-            symbol: chainConfig.ticker,
-            decimals: chainConfig.decimals || 18,
-          },
+          chainId: chainConfig.id,
+          chainName: chainConfig.name,
+          rpcUrls: [chainConfig.rpcUrls.default.http[0]],
+          blockExplorerUrls: [chainConfig.blockExplorers?.default?.url],
+          nativeCurrency: chainConfig.nativeCurrency,
           iconUrls: [chainConfig.logo],
         },
       ],
@@ -169,11 +165,11 @@ class MetamaskAdapter extends BaseEvmAdapter<void> {
     this.addChainConfig(chainConfig);
   }
 
-  public async switchChain(params: { chainId: string }, init = false): Promise<void> {
+  public async switchChain(params: { chainId: number }, init = false): Promise<void> {
     super.checkSwitchChainRequirements(params, init);
     await this.metamaskProvider?.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: params.chainId }],
+      params: [{ chainId: params.chainId.toString(16) }],
     });
     this.setAdapterSettings({ chainConfig: this.getChainConfig(params.chainId) as CustomChainConfig });
   }

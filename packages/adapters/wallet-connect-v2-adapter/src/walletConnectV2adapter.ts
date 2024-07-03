@@ -85,7 +85,7 @@ class WalletConnectV2Adapter extends BaseEvmAdapter<void> {
 
     const wc2Settings = await getWalletConnectV2Settings(
       this.chainConfig?.chainNamespace as ChainNamespaceType,
-      [this.chainConfig?.chainId as string],
+      [this.chainConfig?.id?.toString(16)],
       projectId
     );
     if (!this.adapterOptions.loginSettings || Object.keys(this.adapterOptions.loginSettings).length === 0) {
@@ -179,7 +179,7 @@ class WalletConnectV2Adapter extends BaseEvmAdapter<void> {
     this.addChainConfig(chainConfig);
   }
 
-  public async switchChain(params: { chainId: string }, init = false): Promise<void> {
+  public async switchChain(params: { chainId: number }, init = false): Promise<void> {
     super.checkSwitchChainRequirements(params, init);
     await this.wcProvider?.switchChain({ chainId: params.chainId });
     this.setAdapterSettings({ chainConfig: this.getChainConfig(params.chainId) as CustomChainConfig });

@@ -10,7 +10,7 @@ export abstract class BaseInjectedProvider<P> extends BaseProvider<BaseProviderC
     super({ config, state });
   }
 
-  public async switchChain(_: { chainId: string }): Promise<void> {
+  public async switchChain(_: { chainId: number }): Promise<void> {
     throw WalletLoginError.unsupportedOperation("Chain switching is not supported by this adapter");
   }
 
@@ -37,9 +37,9 @@ export abstract class BaseInjectedProvider<P> extends BaseProvider<BaseProviderC
   protected async lookupNetwork(): Promise<string> {
     const { chainConfig } = this.config;
     this.update({
-      chainId: chainConfig.chainId,
+      chainId: chainConfig.id.toString(16),
     });
-    return chainConfig.chainId || "";
+    return chainConfig.id.toString(16) || "";
   }
 
   protected getInjectedProviderProxy(_: P): JRPCMiddleware<unknown, unknown> {

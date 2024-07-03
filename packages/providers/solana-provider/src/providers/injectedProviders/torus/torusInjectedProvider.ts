@@ -15,11 +15,11 @@ export class TorusInjectedProvider extends BaseProvider<BaseProviderConfig, Base
     super({ config, state });
   }
 
-  public async switchChain(params: { chainId: string }): Promise<void> {
+  public async switchChain(params: { chainId: number }): Promise<void> {
     // overrides the base provider implementation
     await this.provider.request({
       method: "switchSolanaChain",
-      params: [{ chainId: params.chainId }],
+      params: [{ chainId: params.chainId.toString(16) }],
     });
   }
 
@@ -29,15 +29,15 @@ export class TorusInjectedProvider extends BaseProvider<BaseProviderConfig, Base
       method: "addNewChainConfig",
       params: [
         {
-          chainId: chainConfig.chainId,
-          chainName: chainConfig.displayName,
-          rpcUrls: [chainConfig.rpcTarget],
-          blockExplorerUrls: [chainConfig.blockExplorerUrl],
+          chainId: chainConfig.id,
+          chainName: chainConfig.name,
+          rpcUrls: [chainConfig.rpcUrls.default.http[0]],
+          blockExplorerUrls: [chainConfig.blockExplorers],
           iconUrls: [chainConfig.logo],
           nativeCurrency: {
-            name: chainConfig.tickerName,
-            symbol: chainConfig.ticker,
-            decimals: chainConfig.decimals || 18,
+            name: chainConfig.nativeCurrency.name,
+            symbol: chainConfig.nativeCurrency.symbol,
+            decimals: chainConfig.nativeCurrency.decimals || 18,
           },
         },
       ],
@@ -53,14 +53,14 @@ export class TorusInjectedProvider extends BaseProvider<BaseProviderConfig, Base
 
   protected async lookupNetwork(): Promise<string> {
     if (!this.provider) throw providerErrors.custom({ message: "Torus solana provider is not initialized", code: 4902 });
-    const { chainId } = this.config.chainConfig;
+    const { id: chainId } = this.config.chainConfig;
 
     const connectedChainId = await this.provider.request<never, string>({
       method: "solana_chainId",
     });
 
     const connectedHexChainId = isHexStrict(connectedChainId.toString()) ? connectedChainId : `0x${parseInt(connectedChainId, 10).toString(16)}`;
-    if (chainId !== connectedHexChainId)
+    if (chainId.toString(16) !== connectedHexChainId)
       throw WalletInitializationError.rpcConnectionError(`Invalid network, net_version is: ${connectedHexChainId}, expected: ${chainId}`);
 
     this.update({ chainId: connectedHexChainId });
@@ -89,7 +89,7 @@ export class TorusInjectedProvider extends BaseProvider<BaseProviderConfig, Base
       const connectedHexChainId = isHexStrict(chainId) ? chainId : `0x${parseInt(chainId, 10).toString(16)}`;
       // Check if chainId changed and trigger event
       this.configure({
-        chainConfig: { ...this.config.chainConfig, chainId: connectedHexChainId },
+        chainConfig: { ...this.config.chainConfig, id: parseInt(connectedHexChainId, 16) },
       });
       await this.setupProvider(injectedProvider);
     });

@@ -75,11 +75,13 @@ export class SolanaWalletConnectorPlugin extends SafeEventEmitter implements IPl
     this.subscribeToWeb3AuthNoModalEvents(web3auth);
 
     const connectedChainConfig = web3auth.coreOptions.chainConfig as CustomChainConfig;
-    if (!connectedChainConfig.blockExplorerUrl) throw SolanaWalletPluginError.invalidParams("blockExplorerUrl is required in chainConfig");
-    if (!connectedChainConfig.displayName) throw SolanaWalletPluginError.invalidParams("displayName is required in chainConfig");
+    if (!connectedChainConfig.blockExplorers?.default?.url)
+      throw SolanaWalletPluginError.invalidParams("blockExplorerUrl is required in chainConfig");
+    if (!connectedChainConfig.name) throw SolanaWalletPluginError.invalidParams("displayName is required in chainConfig");
     if (!connectedChainConfig.logo) throw SolanaWalletPluginError.invalidParams("logo is required in chainConfig");
-    if (!connectedChainConfig.ticker) throw SolanaWalletPluginError.invalidParams("ticker is required in chainConfig");
-    if (!connectedChainConfig.tickerName) throw SolanaWalletPluginError.invalidParams("tickerName is required in chainConfig");
+    if (!connectedChainConfig.nativeCurrency?.name) throw SolanaWalletPluginError.invalidParams("native currency name is required in chainConfig");
+    if (!connectedChainConfig.nativeCurrency?.symbol)
+      throw SolanaWalletPluginError.invalidParams("native currency symbol is required in chainConfig");
 
     await this.torusWalletInstance.init({
       ...(this.walletInitOptions || {}),
@@ -94,12 +96,13 @@ export class SolanaWalletConnectorPlugin extends SafeEventEmitter implements IPl
         },
       },
       network: {
-        ...connectedChainConfig,
-        blockExplorerUrl: connectedChainConfig.blockExplorerUrl,
+        blockExplorerUrl: connectedChainConfig.blockExplorers?.default?.url,
         logo: connectedChainConfig.logo,
-        chainId: connectedChainConfig.chainId,
-        rpcTarget: connectedChainConfig.rpcTarget,
-        displayName: connectedChainConfig.displayName,
+        chainId: connectedChainConfig.id.toString(16),
+        rpcTarget: connectedChainConfig.rpcUrls?.default?.http?.[0],
+        displayName: connectedChainConfig.name,
+        ticker: connectedChainConfig.nativeCurrency?.symbol,
+        tickerName: connectedChainConfig.nativeCurrency?.name,
       } as NetworkInterface,
       showTorusButton: false,
     });
@@ -248,13 +251,13 @@ export class SolanaWalletConnectorPlugin extends SafeEventEmitter implements IPl
     const { chainConfig } = sessionConfig || {};
     if (chainId !== torusWalletSessionConfig.chainId && chainConfig) {
       await this.torusWalletInstance.setProvider({
-        ticker: chainConfig.ticker,
-        tickerName: chainConfig.tickerName,
-        blockExplorerUrl: chainConfig.blockExplorerUrl,
+        ticker: chainConfig.nativeCurrency.symbol,
+        tickerName: chainConfig.nativeCurrency.name,
+        blockExplorerUrl: chainConfig.blockExplorers?.default?.url,
         logo: chainConfig.logo,
         chainId: `0x${chainId.toString(16)}`,
-        rpcTarget: chainConfig.rpcTarget,
-        displayName: chainConfig.displayName,
+        rpcTarget: chainConfig.rpcUrls?.default?.http?.[0],
+        displayName: chainConfig.name,
       });
     }
   }
