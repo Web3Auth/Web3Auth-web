@@ -1,0 +1,1 @@
+export const PASSKEYS_PLUGIN = "PASSKEYS_PLUGIN";

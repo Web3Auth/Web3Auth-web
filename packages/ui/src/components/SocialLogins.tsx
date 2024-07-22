@@ -60,7 +60,7 @@ export default function SocialLogins(props: SocialLoginProps) {
 
   const adapterListClass = classNames("w3a-adapter-list", "w3ajs-socials-adapters", !isExpanded ? " w3a-adapter-list--shrink" : "");
   const adapterButtonClass = classNames("w3a-button-expand", "w3ajs-button-expand", isExpanded ? "w3a-button--rotate" : "");
-  const adapterExpandText = isExpanded ? t("modal.social.view-less") : t("modal.social.view-more");
+  const adapterExpandText = isExpanded ? t("modal.social.view-less-socials") : t("modal.social.view-more-socials");
   const loginMethodsCount = Object.keys(socialLoginsConfig.loginMethods).length + 1;
 
   const restrictedLoginMethods: string[] = [
@@ -79,10 +79,9 @@ export default function SocialLogins(props: SocialLoginProps) {
           const orderIndex = socialLoginsConfig.loginMethodsOrder.indexOf(method) + 1;
           const order = orderIndex || Object.keys(socialLoginsConfig.loginMethods).length + 1;
 
-          const isMainOption = socialLoginsConfig.loginMethods[method].mainOption;
-          const isPrimaryBtn = socialLoginsConfig?.uiConfig?.primaryButton === "socialLogin" && order === 1;
-
-          const providerIcon = getProviderIcon(method, isDark, isPrimaryBtn);
+          // TODO: get from somewhere
+          const lastLogin = "facebook";
+          const providerIcon = getProviderIcon(method, isDark, false);
 
           if (socialLoginsConfig.loginMethods[method].showOnModal === false || restrictedLoginMethods.includes(method)) {
             return null;
@@ -90,7 +89,7 @@ export default function SocialLogins(props: SocialLoginProps) {
 
           const loginMethodSpan = classNames("w3a-adapter-item", socialLoginsConfig?.uiConfig?.loginGridCol === 2 ? "col-span-3" : "col-span-2");
 
-          if (isMainOption || order === 1) {
+          if (method === lastLogin) {
             return (
               <li className="col-span-6 w3a-adapter-item" key={method} style={{ order }}>
                 <Button
@@ -129,7 +128,6 @@ export default function SocialLogins(props: SocialLoginProps) {
           );
         })}
       </ul>
-      <div className="w3a-social__policy">{t("modal.social.policy")}</div>
       {canShowMore && (
         <div className="text-right">
           <button type="button" className={adapterButtonClass} onClick={expandClickHandler}>

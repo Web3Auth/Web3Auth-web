@@ -1,0 +1,71 @@
+{
+  "name": "@web3auth/passkeys-pnp-plugin",
+  "version": "8.10.2",
+  "description": "Passkeys PnP plugin for fast login",
+  "author": "Torus Labs",
+  "homepage": "https://github.com/web3auth/passkeys-pnp-plugin#readme",
+  "license": "MIT",
+  "main": "dist/passkeysPnpPlugin.cjs.js",
+  "module": "dist/passkeysPnpPlugin.esm.js",
+  "unpkg": "dist/passkeysPnpPlugin.umd.min.js",
+  "jsdelivr": "dist/passkeysPnpPlugin.umd.min.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Web3auth/passkeys-pnp-plugin.git"
+  },
+  "scripts": {
+    "release": "torus-scripts release",
+    "dev": "rimraf dist/ && cross-env NODE_ENV=development torus-scripts start",
+    "build": "rimraf dist/ && cross-env NODE_ENV=production torus-scripts build",
+    "lint": "eslint --fix 'src/**/*.ts'",
+    "prepack": "npm run build",
+    "pre-commit": "lint-staged",
+    "prepare": "husky"
+  },
+  "peerDependencies": {
+    "@babel/runtime": "7.x"
+  },
+  "dependencies": {
+    "@simplewebauthn/browser": "^10.0.0",
+    "@simplewebauthn/types": "^10.0.0",
+    "@toruslabs/eccrypto": "^4.0.0",
+    "@toruslabs/fetch-node-details": "^13.4.0",
+    "@toruslabs/http-helpers": "^6.1.1",
+    "@toruslabs/metadata-helpers": "^5.1.0",
+    "@toruslabs/openlogin-jrpc": "^8.1.1",
+    "@toruslabs/openlogin-utils": "^8.1.2",
+    "@toruslabs/torus.js": "^12.3.6",
+    "@web3auth/base": "^8.7.0",
+    "base64url": "^3.0.1",
+    "bowser": "^2.11.0",
+    "cbor-x": "^1.5.9",
+    "elliptic": "^6.5.5",
+    "loglevel": "^1.9.1"
+  },
+  "devDependencies": {
+    "@web3auth/openlogin-adapter": "^8.7.0",
+    "@web3auth/ui": "^8.7.0",
+    "@types/elliptic": "^6.4.18"
+  },
+  "bugs": {
+    "url": "https://github.com/Web3Auth/web3auth-web/issues"
+  },
+  "lint-staged": {
+    "!(*d).ts": [
+      "npm run lint --",
+      "prettier --write 'src/**/*.ts'"
+    ]
+  },
+  "engines": {
+    "node": ">=18.x",
+    "npm": ">=9.x"
+  },
+  "gitHead": "9967ce9f795f495f28ef0da1fc50acde31dcc258"
+}

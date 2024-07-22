@@ -28,6 +28,11 @@
   transform-origin: center center;
 }
 
+#w3a-modal .w3a-modal__inner.w3a-modal__inner--passkey {
+  @apply min-h-0;
+
+}
+
 #w3a-modal .w3a-modal__inner.w3a-modal__inner--active {
   @apply opacity-100;
   transform: scale(1);
@@ -77,10 +82,6 @@
 }
 
 /* BODY */
-#w3a-modal div.w3a-social__policy {
-  @apply mt-4 text-xs font-medium text-left text-app-gray-500 dark:text-app-gray-400;
-}
-
 #w3a-modal .w3a-group {
   @apply mb-4;
 }
@@ -118,7 +119,7 @@
 }
 
 #w3a-modal ul.w3a-adapter-list.w3a-adapter-list--shrink {
-  max-height: 108px;
+  max-height: 50px;
   transition: max-height 0.3s;
   transition-timing-function: cubic-bezier(0, 0.73, 0.71, 1);
 }
@@ -311,7 +312,7 @@
 }
 
 #w3a-modal button.w3a-button-expand {
-  @apply w-auto h-auto mt-4 ml-auto text-sm text-app-primary-600 hover:text-app-primary-800 dark:text-app-primary-500 dark:hover:text-app-primary-400 focus-visible:outline-1 dark:focus-visible:outline-1 focus-visible:outline dark:focus-visible:outline focus-visible:outline-app-gray-50 dark:focus-visible:outline-app-gray-400;
+  @apply w-auto h-auto mt-2 ml-auto text-sm text-app-primary-600 hover:text-app-primary-800 dark:text-app-primary-500 dark:hover:text-app-primary-400 focus-visible:outline-1 dark:focus-visible:outline-1 focus-visible:outline dark:focus-visible:outline focus-visible:outline-app-gray-50 dark:focus-visible:outline-app-gray-400;
 }
 
 /* SMS */

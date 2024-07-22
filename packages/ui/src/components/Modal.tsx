@@ -13,7 +13,6 @@ import Button from "./Button";
 import ExternalWallets from "./ExternalWallets";
 import Footer from "./Footer";
 import Header from "./Header";
-// import Loader from "./Loader";
 import SocialLoginPasswordless from "./SocialLoginPasswordless";
 import SocialLogins from "./SocialLogins";
 
@@ -24,6 +23,7 @@ interface ModalProps {
   handleSocialLoginClick: (params: SocialLoginEventType) => void;
   handleExternalWalletClick: (params: ExternalWalletEventType) => void;
   handleShowExternalWallets: (externalWalletsInitialized: boolean) => void;
+  handlePasskeyLogin: () => void;
   closeModal: () => void;
 }
 
@@ -54,10 +54,20 @@ export default function Modal(props: ModalProps) {
     detailedLoaderAdapterName: "",
     showExternalWalletsOnly: false,
     wcAdapters: [],
+    hasPasskeyEnabled: false,
   });
   const [t] = useTranslation(undefined, { i18n });
 
-  const { stateListener, appLogo, appName, handleSocialLoginClick, handleExternalWalletClick, handleShowExternalWallets, closeModal } = props;
+  const {
+    stateListener,
+    appLogo,
+    appName,
+    handleSocialLoginClick,
+    handleExternalWalletClick,
+    handleShowExternalWallets,
+    handlePasskeyLogin,
+    closeModal,
+  } = props;
 
   useEffect(() => {
     stateListener.emit("MOUNTED");
@@ -127,13 +137,25 @@ export default function Modal(props: ModalProps) {
     handleSocialLoginClick(params);
   };
 
+  const preHandlePasskeyClick = () => {
+    setModalState((prevState) => {
+      return { ...prevState, detailedLoaderAdapter: "passkey", detailedLoaderAdapterName: "passkey" };
+    });
+    handlePasskeyLogin();
+  };
+
   const isEmailPrimary = modalState.socialLoginsConfig?.uiConfig?.primaryButton === "emailLogin";
   const isExternalPrimary = modalState.socialLoginsConfig?.uiConfig?.primaryButton === "externalLogin";
 
   const externalWalletButton = (
-    <div className="w3ajs-external-wallet w3a-group">
+    <div className="w3ajs-external-wallet w3a-group -mt-2">
+      <div className="inline-flex items-center justify-center w-full mb-4 relative">
+        <hr className="w-full h-px my-2 bg-app-gray-200 border-0 dark:bg-app-gray-500" />
+        <span className="absolute px-3 text-xs text-app-gray-200 -translate-x-1/2 bg-app-white left-1/2 dark:text-app-gray-500 dark:bg-app-gray-800">
+          {t("modal.passkey.or")}
+        </span>
+      </div>
       <div className="w3a-external-toggle w3ajs-external-toggle">
-        <div className="w3a-group__title">{t("modal.external.title")}</div>
         <Button
           variant={isExternalPrimary ? "primary" : "tertiary"}
           type="button"
@@ -148,9 +170,17 @@ export default function Modal(props: ModalProps) {
             });
           }}
         >
-          {t("modal.external.connect")}
+          {t("modal.external.continue")}
         </Button>
       </div>
+    </div>
+  );
+
+  const passkeyButton = (
+    <div className="w3a-group text-center">
+      <Button variant="tertiary" type="button" className="w-full" onClick={preHandlePasskeyClick}>
+        {t("modal.passkey.use")}
+      </Button>
     </div>
   );
 
@@ -217,21 +247,24 @@ export default function Modal(props: ModalProps) {
 
                   {/* button to show external wallets */}
                   {modalState.hasExternalWallets && externalWalletButton}
+                  {modalState.hasPasskeyEnabled && passkeyButton}
                 </>
               ) : (
-                <ExternalWallets
-                  modalStatus={modalState.status}
-                  showBackButton={areSocialLoginsVisible}
-                  handleExternalWalletClick={preHandleExternalWalletClick}
-                  walletConnectUri={modalState.walletConnectUri}
-                  wcAdapters={modalState.wcAdapters}
-                  config={modalState.externalWalletsConfig}
-                  hideExternalWallets={() =>
-                    setModalState((prevState) => {
-                      return { ...prevState, externalWalletsVisibility: false };
-                    })
-                  }
-                />
+                modalState.externalWalletsVisibility && (
+                  <ExternalWallets
+                    modalStatus={modalState.status}
+                    showBackButton={areSocialLoginsVisible}
+                    handleExternalWalletClick={preHandleExternalWalletClick}
+                    walletConnectUri={modalState.walletConnectUri}
+                    wcAdapters={modalState.wcAdapters}
+                    config={modalState.externalWalletsConfig}
+                    hideExternalWallets={() =>
+                      setModalState((prevState) => {
+                        return { ...prevState, externalWalletsVisibility: false };
+                      })
+                    }
+                  />
+                )
               )}
             </div>
           )}

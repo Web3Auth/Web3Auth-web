@@ -13,6 +13,7 @@
     "@web3auth/ethereum-provider": "file:../../packages/providers/ethereum-provider",
     "@web3auth/modal": "file:../../packages/modal",
     "@web3auth/openlogin-adapter": "file:../../packages/adapters/openlogin-adapter",
+    "@web3auth/passkeys-pnp-plugin": "file:../../packages/plugins/passkeys-pnp-plugin",
     "@web3auth/solana-provider": "file:../../packages/providers/solana-provider",
     "@web3auth/wallet-services-plugin": "file:../../packages/plugins/wallet-services-plugin",
     "react": "^18.2.0",

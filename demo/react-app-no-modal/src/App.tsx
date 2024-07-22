@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Web3AuthNoModal } from "@web3auth/no-modal";
-import { CHAIN_NAMESPACES, CustomChainConfig, SafeEventEmitterProvider, WALLET_ADAPTERS, getChainConfig, getEvmChainConfig } from "@web3auth/base";
+import { ADAPTER_EVENTS, CHAIN_NAMESPACES, CustomChainConfig, PLUGIN_EVENTS, SafeEventEmitterProvider, WALLET_ADAPTERS, getChainConfig, getEvmChainConfig } from "@web3auth/base";
 import { OpenloginAdapter, OpenloginAdapterOptions, OpenloginLoginParams } from "@web3auth/openlogin-adapter";
 // import { TorusWalletAdapter } from "@web3auth/torus-evm-adapter";
 // import { CoinbaseAdapter } from "@web3auth/coinbase-adapter";
@@ -12,17 +12,60 @@ import { CoinbaseAdapter } from "@web3auth/coinbase-adapter";
 import { SolanaWalletAdapter } from "@web3auth/torus-solana-adapter";
 //import RPC from "./ethersRPC"; // for using ethers.js
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
+import { PasskeysPlugin } from "@web3auth/passkeys-pnp-plugin";
+import { WalletServicesPlugin } from "@web3auth/wallet-services-plugin";
 
 const clientId = "BEglQSgt4cUWcj6SKRdu5QkOXTsePmMcusG5EAoyjyOYKlVRjIF1iCNnMOTfpzCiunHRrMui8TIwQPXdkQ8Yxuk"; // get from https://dashboard.web3auth.io
 
 function App() {
   const [web3auth, setWeb3auth] = useState<Web3AuthNoModal | null>(null);
   const [provider, setProvider] = useState<SafeEventEmitterProvider | null>(null);
+  const [passkeysPlugin, setPasskeysPlugin] = useState<PasskeysPlugin | null>(null);
+  const [walletServicesPlugin, setWalletServicesPlugin] = useState<WalletServicesPlugin | null>(null);
 
   useEffect(() => {
+    const subscribeAuthEvents = (web3auth: Web3AuthNoModal) => {
+      // Can subscribe to all ADAPTER_EVENTS and LOGIN_MODAL_EVENTS
+      web3auth.on(ADAPTER_EVENTS.CONNECTED, (data: unknown) => {
+        console.log("Yeah!, you are successfully logged in", data);
+        setProvider(web3auth.provider!);
+      });
+
+      web3auth.on(ADAPTER_EVENTS.CONNECTING, () => {
+        console.log("connecting");
+      });
+
+      web3auth.on(ADAPTER_EVENTS.DISCONNECTED, () => {
+        console.log("disconnected");
+      });
+
+      web3auth.on(ADAPTER_EVENTS.ERRORED, (error: unknown) => {
+        console.error("some error or user has cancelled login request", error);
+      });
+    };
+
+    const subscribePluginEvents = (plugin: WalletServicesPlugin) => {
+      // Can subscribe to all PLUGIN_EVENTS and LOGIN_MODAL_EVENTS
+      plugin.on(PLUGIN_EVENTS.CONNECTED, (data: unknown) => {
+        console.log("Yeah!, you are successfully logged in to plugin");
+      });
+
+      plugin.on(PLUGIN_EVENTS.CONNECTING, () => {
+        console.log("connecting plugin");
+      });
+
+      plugin.on(PLUGIN_EVENTS.DISCONNECTED, () => {
+        console.log("plugin disconnected");
+      });
+
+      plugin.on(PLUGIN_EVENTS.ERRORED, (error) => {
+        console.error("some error on plugin login", error);
+      });
+    };
+    
     const init = async () => {
       try {
-        const web3auth = new Web3AuthNoModal({
+        const web3authInstance = new Web3AuthNoModal({
           clientId,
           chainConfig: {
             displayName: "Ethereum Mainnet",
@@ -34,10 +77,10 @@ function App() {
             logo: "https://images.toruswallet.io/eth.svg",
             chainNamespace: CHAIN_NAMESPACES.EIP155,
           },
-          web3AuthNetwork: "sapphire_devnet",
+          web3AuthNetwork: "cyan",
         });
 
-        setWeb3auth(web3auth);
+        setWeb3auth(web3authInstance);
 
         const openloginAdapter = new OpenloginAdapter({
           privateKeyProvider: new EthereumPrivateKeyProvider({
@@ -46,13 +89,29 @@ function App() {
             },
           }),
         });
-        web3auth.configureAdapter(openloginAdapter);
+        web3authInstance.configureAdapter(openloginAdapter);
 
+        // Passkeys Plugin
+        const localPasskeysPlugin = new PasskeysPlugin({ buildEnv: 'testing' });
+        web3authInstance.addPlugin(localPasskeysPlugin);
+        setPasskeysPlugin(localPasskeysPlugin);
 
-        await web3auth.init();
-        if (web3auth.connectedAdapterName && web3auth.provider) {
-          setProvider(web3auth.provider);
-        }
+        const walletServicesPlugin = new WalletServicesPlugin({
+          wsEmbedOpts: {},
+          walletInitOptions: {
+            whiteLabel: { 
+              showWidgetButton: true, 
+              logoLight: "https://web3auth.io/images/web3auth-logo.svg",
+              logoDark: "https://web3auth.io/images/web3auth-logo.svg", 
+            },
+          },
+        });
+        subscribePluginEvents(walletServicesPlugin);
+        subscribeAuthEvents(web3authInstance);
+        setWalletServicesPlugin(walletServicesPlugin);
+        web3authInstance.addPlugin(walletServicesPlugin);
+
+        await web3authInstance.init();
       } catch (error) {
         console.error(error);
       }
@@ -66,9 +125,41 @@ function App() {
       uiConsole("web3auth not initialized yet");
       return;
     }
-    const web3authProvider = await web3auth.connectTo<OpenloginLoginParams>(WALLET_ADAPTERS.OPENLOGIN, { loginProvider: "google" });
-    setProvider(web3authProvider);
+    await web3auth.connectTo<OpenloginLoginParams>(WALLET_ADAPTERS.OPENLOGIN, { loginProvider: "google" });
   };
+
+  const registerWithPasskey = async () => { 
+    if (!passkeysPlugin) {
+      console.log("passkeysPlugin not initialized yet");
+      uiConsole("passkeysPlugin not initialized yet");
+      return;
+    }
+    const userInfo = await web3auth?.getUserInfo();
+     
+    const res = await passkeysPlugin.registerPasskey({ 
+      username: `${userInfo?.typeOfLogin}|${userInfo?.email || userInfo?.name} - ${new Date().toLocaleDateString("en-GB")}`
+    });
+    if (res) uiConsole("Passkey registered successfully");
+  }
+
+  const loginWithPasskey = async () => { 
+    if (!passkeysPlugin) {
+      console.log("passkeysPlugin not initialized yet");
+      uiConsole("passkeysPlugin not initialized yet");
+      return;
+    }
+    await passkeysPlugin.loginWithPasskey();
+  }
+
+  const listAllPasskeys = async () => {
+    if (!passkeysPlugin) {
+      uiConsole("passkeysPlugin not initialized yet");
+      return;
+    }
+    const res = await passkeysPlugin?.listAllPasskeys();
+    uiConsole(res);
+  };
+
 
   const authenticateUser = async () => {
     if (!web3auth) {
@@ -246,6 +337,16 @@ function App() {
           </button>
         </div>
         <div>
+          <button onClick={registerWithPasskey} className="card">
+            Register Passkey
+          </button>
+        </div>
+        <div>
+          <button onClick={listAllPasskeys} className="card">
+            List All Passkeys
+          </button>
+        </div>
+        <div>
           <button onClick={logout} className="card">
             Log Out
           </button>
@@ -258,9 +359,14 @@ function App() {
   );
 
   const unloggedInView = (
-    <button onClick={login} className="card">
-      Login
-    </button>
+    <>
+      <button onClick={login} className="card">
+        Login
+      </button>
+      <button onClick={loginWithPasskey} className="card">
+        Login with passkey
+      </button>
+    </>
   );
 
   return (

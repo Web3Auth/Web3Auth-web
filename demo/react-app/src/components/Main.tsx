@@ -22,6 +22,7 @@ const Main = () => {
     randomContractInteraction,
     showWalletConnectScanner,
     enableMFA,
+    registerPasskey,
   } = useWeb3Auth();
 
   const loggedInView = (
@@ -66,6 +67,9 @@ const Main = () => {
       </button>
       <button onClick={showWalletConnectScanner} className={styles.card}>
         Show WalletConnect Scanner
+      </button>
+      <button onClick={registerPasskey} className={styles.card}>
+        Register Passkey
       </button>
       <button onClick={logout} className={styles.card}>
         Log Out

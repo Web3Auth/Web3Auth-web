@@ -17,10 +17,19 @@ import {
   WalletInitializationError,
 } from "@web3auth/base";
 import { CommonJRPCProvider } from "@web3auth/base-provider";
-import { Web3AuthNoModal } from "@web3auth/no-modal";
+import { PASSKEYS_PLUGIN, Web3AuthNoModal } from "@web3auth/no-modal";
 import { getOpenloginDefaultOptions, LOGIN_PROVIDER, LoginConfig, OpenloginAdapter, OpenLoginOptions } from "@web3auth/openlogin-adapter";
-import { getAdapterSocialLogins, getUserLanguage, LOGIN_MODAL_EVENTS, LoginModal, OPENLOGIN_PROVIDERS, UIConfig } from "@web3auth/ui";
-import { WalletConnectV2Adapter } from "@web3auth/wallet-connect-v2-adapter";
+import { type PasskeysPlugin } from "@web3auth/passkeys-pnp-plugin";
+import {
+  getAdapterSocialLogins,
+  getUserLanguage,
+  LOGIN_MODAL_EVENTS,
+  LoginModal,
+  OPENLOGIN_PROVIDERS,
+  RegisterPasskeyModal,
+  UIConfig,
+} from "@web3auth/ui";
+import { type WalletConnectV2Adapter } from "@web3auth/wallet-connect-v2-adapter";
 import clonedeep from "lodash.clonedeep";
 import merge from "lodash.merge";
 
@@ -59,7 +68,8 @@ export class Web3Auth extends Web3AuthNoModal implements IWeb3AuthModal {
     this.modalConfig = modalConfig;
   }
 
-  public async initModal(params?: { modalConfig?: Record<WALLET_ADAPTER_TYPE, ModalConfig> }): Promise<void> {
+  // TODO: types here are confusing as its just a string, we should fix this ideally.
+  public async initModal(params?: { modalConfig?: Record<WALLET_ADAPTER_TYPE | typeof PASSKEYS_PLUGIN, ModalConfig> }): Promise<void> {
     super.checkInitRequirements();
 
     let projectConfig: PROJECT_CONFIG_RESPONSE;
@@ -98,6 +108,31 @@ export class Web3Auth extends Web3AuthNoModal implements IWeb3AuthModal {
       };
       if (!params?.modalConfig) params = { modalConfig: {} };
       params.modalConfig = merge(clonedeep(params.modalConfig), adapterConfig);
+    }
+
+    // check if passkeys plugin is added.
+    // NOTE: developers should add plugin before initializing modal.
+    const passkeysPlugin = this.getPlugin(PASSKEYS_PLUGIN) as PasskeysPlugin | null;
+    if (passkeysPlugin) {
+      const pluginConfig = {
+        [PASSKEYS_PLUGIN]: {
+          label: PASSKEYS_PLUGIN,
+          showOnModal: true,
+          showOnDesktop: true,
+          showOnMobile: true,
+        },
+      };
+      if (!params?.modalConfig) params = { modalConfig: {} };
+      params.modalConfig = merge(clonedeep(params.modalConfig), pluginConfig);
+
+      if (params.modalConfig[PASSKEYS_PLUGIN]?.showOnModal) {
+        const registerModalUI = new RegisterPasskeyModal({
+          ...this.options.uiConfig,
+          adapterListener: this,
+        });
+        registerModalUI.initModal();
+        passkeysPlugin.setPluginOptions({ registerFlowModal: registerModalUI });
+      }
     }
 
     await this.loginModal.initModal();
@@ -299,6 +334,12 @@ export class Web3Auth extends Web3AuthNoModal implements IWeb3AuthModal {
       }
     });
 
+    if (params.modalConfig?.[PASSKEYS_PLUGIN]?.showOnModal) {
+      await passkeysPlugin?.initWithWeb3Auth(this);
+      this.subscribeToPluginEvents(passkeysPlugin);
+      this.loginModal.setPasskeyPluginVisibility(true);
+    }
+
     this.commonJRPCProvider = await CommonJRPCProvider.getProviderInstance({ chainConfig: this.coreOptions.chainConfig as CustomChainConfig });
     await Promise.all(initPromises);
     if (this.status === ADAPTER_STATUS.NOT_READY) {
@@ -431,6 +472,14 @@ export class Web3Auth extends Web3AuthNoModal implements IWeb3AuthModal {
           log.debug("this stops wc adapter from trying to reconnect once proposal expires");
           adapter.status = ADAPTER_STATUS.READY;
         }
+      }
+    });
+
+    this.loginModal.on(LOGIN_MODAL_EVENTS.PASSKEY_LOGIN, async () => {
+      try {
+        await this.loginWithPasskey();
+      } catch (err) {
+        log.error("Error while login with passkeys", err);
       }
     });
   }

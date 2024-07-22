@@ -53,6 +53,12 @@ export const LOGIN_MODAL_EVENTS = {
   LOGIN: "LOGIN",
   DISCONNECT: "DISCONNECT",
   MODAL_VISIBILITY: "MODAL_VISIBILITY",
+  PASSKEY_LOGIN: "PASSKEY_LOGIN",
+  PASSKEY_REGISTER: "PASSKEY_REGISTER",
+};
+
+export const PASSKEY_MODAL_EVENTS = {
+  PASSKEY_MODAL_VISIBILITY: "PASSKEY_MODAL_VISIBILITY",
 };
 
 export type SocialLoginsConfig = {
@@ -85,6 +91,7 @@ export interface ModalState {
   detailedLoaderAdapterName: string;
   showExternalWalletsOnly: boolean;
   wcAdapters: IWalletConnectExtensionAdapter[];
+  hasPasskeyEnabled: boolean;
 }
 
 export type SocialLoginEventType = { adapter: string; loginParams: { loginProvider: string; login_hint?: string; name: string } };

@@ -16,6 +16,7 @@
     "@svgr/webpack": "^8.1.0",
     "@toruslabs/isomorphic-style-loader": "^5.3.3",
     "@toruslabs/openlogin-utils": "^8.2.1",
+    "@web3auth/passkeys-pnp-plugin": "^8.10.2",
     "@web3auth/wallet-connect-v2-adapter": "^8.10.2",
     "css-loader": "^7.1.2",
     "postcss-prefix-selector": "^1.16.1",

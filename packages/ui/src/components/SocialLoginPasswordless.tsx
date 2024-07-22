@@ -67,7 +67,7 @@ export default function SocialLoginPasswordless(props: SocialLoginPasswordlessPr
   }, [isEmailVisible, isSmsVisible]);
 
   const placeholder = useMemo(() => {
-    if (isEmailVisible && isSmsVisible) return "+(00)123456/name@example.com";
+    if (isEmailVisible && isSmsVisible) return "name@example.com/+(00)123456";
     if (isEmailVisible) return "name@example.com";
     return "+(00)123456";
   }, [isEmailVisible, isSmsVisible]);
@@ -90,25 +90,29 @@ export default function SocialLoginPasswordless(props: SocialLoginPasswordlessPr
         )}
       </div>
       <form className="w3ajs-passwordless-form" onSubmit={(e) => handleFormSubmit(e)}>
-        <input
-          className="w-full mb-4 w3a-text-field"
-          name="passwordless-input"
-          required
-          placeholder={`${t("modal.social.sms-placeholder-text")} ${placeholder}`}
-          onFocus={(e) => {
-            e.target.placeholder = "";
-          }}
-          onBlur={(e) => {
-            e.target.placeholder = `${t("modal.social.sms-placeholder-text")} ${placeholder}`;
-          }}
-          onChange={(e) => handleInputChange(e)}
-        />
+        <div className="w3a-text-field !py-1 !pl-6 !pr-1 flex gap-2 mb-4 w-full justify-between">
+          <div className="flex flex-1 items-center">
+            <input
+              type="text"
+              className="border-none bg-transparent focus:outline-none w-full"
+              name="passwordless-input"
+              required
+              placeholder={placeholder}
+              onFocus={(e) => {
+                e.target.placeholder = "";
+              }}
+              onBlur={(e) => {
+                e.target.placeholder = placeholder;
+              }}
+              onChange={(e) => handleInputChange(e)}
+            />
+          </div>
+          <Button className="!px-6" variant={isPrimaryBtn ? "primary" : "tertiary"} size="sm" disabled={fieldValue === ""} type="submit">
+            {t("modal.social.passwordless-login")}
+          </Button>
+        </div>
 
         {isValidInput === false && <div className="w3a-sms-field--error">{t("modal.errors-invalid-number-email")}</div>}
-
-        <Button variant={isPrimaryBtn ? "primary" : "tertiary"} disabled={fieldValue === ""} className="w-full" type="submit">
-          {t("modal.social.passwordless-cta")}
-        </Button>
       </form>
     </div>
   );

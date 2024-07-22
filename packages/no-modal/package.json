@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "@web3auth/openlogin-adapter": "^8.8.0",
+    "@web3auth/passkeys-pnp-plugin": "^8.10.2",
     "@web3auth/wallet-connect-v2-adapter": "^8.10.2"
   },
   "peerDependenciesMeta": {

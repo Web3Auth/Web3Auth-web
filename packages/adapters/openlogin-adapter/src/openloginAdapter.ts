@@ -1,5 +1,14 @@
 import OpenLogin from "@toruslabs/openlogin";
-import { LoginParams, OPENLOGIN_NETWORK, OpenLoginOptions, SUPPORTED_KEY_CURVES, UX_MODE } from "@toruslabs/openlogin-utils";
+import { OpenloginSessionManager } from "@toruslabs/openlogin-session-manager";
+import {
+  BrowserStorage,
+  LoginParams,
+  OPENLOGIN_NETWORK,
+  OpenLoginOptions,
+  OpenloginSessionData,
+  SUPPORTED_KEY_CURVES,
+  UX_MODE,
+} from "@toruslabs/openlogin-utils";
 import {
   ADAPTER_CATEGORY,
   ADAPTER_CATEGORY_TYPE,
@@ -26,7 +35,8 @@ import {
 import merge from "lodash.merge";
 
 import { getOpenloginDefaultOptions } from "./config";
-import type { LoginSettings, OpenloginAdapterOptions, PrivateKeyProvider } from "./interface";
+import type { ExternalAuthTokenPayload, LoginSettings, OpenloginAdapterOptions, PrivateKeyProvider } from "./interface";
+import { getAuthToken } from "./utils";
 
 export type OpenloginLoginParams = LoginParams & {
   // to maintain backward compatibility
@@ -48,9 +58,15 @@ export class OpenloginAdapter extends BaseAdapter<OpenloginLoginParams> {
 
   public privateKeyProvider: PrivateKeyProvider | null = null;
 
+  public _passkeyToken: string | null = null;
+
   private openloginOptions: OpenloginAdapterOptions["adapterSettings"];
 
   private loginSettings: LoginSettings = { loginProvider: "" };
+
+  private storageBaseKey = "openlogin_store";
+
+  private storageInstance: BrowserStorage | null = null;
 
   constructor(params: OpenloginAdapterOptions = {}) {
     super(params);
@@ -103,6 +119,13 @@ export class OpenloginAdapter extends BaseAdapter<OpenloginLoginParams> {
     await this.openloginInstance.init();
 
     if (!this.chainConfig) throw WalletInitializationError.invalidParams("chainConfig is required before initialization");
+
+    const storageKey = this.openloginOptions.sessionNamespace
+      ? `${this.storageBaseKey}_${this.openloginOptions.sessionNamespace}`
+      : this.storageBaseKey;
+
+    this.storageInstance = BrowserStorage.getInstance(storageKey, this.openloginOptions.storageKey);
+    this._passkeyToken = this.storageInstance.get("passkey_token");
 
     this.status = ADAPTER_STATUS.READY;
     this.emit(ADAPTER_EVENTS.READY, WALLET_ADAPTERS.OPENLOGIN);
@@ -217,6 +240,73 @@ export class OpenloginAdapter extends BaseAdapter<OpenloginLoginParams> {
     super.checkSwitchChainRequirements(params, init);
     await this.privateKeyProvider?.switchChain(params);
     this.setAdapterSettings({ chainConfig: this.getChainConfig(params.chainId) as CustomChainConfig });
+  }
+
+  public async _rehydrateWithPasskey({
+    sessionData,
+    passkeyToken,
+    jwtTokenPayload,
+  }: {
+    sessionData: OpenloginSessionData;
+    passkeyToken: string;
+    jwtTokenPayload: { wallets: ExternalAuthTokenPayload["wallets"] };
+  }): Promise<void> {
+    if (this.status === ADAPTER_STATUS.NOT_READY) throw WalletInitializationError.notReady("Adapter is not ready");
+    if (!passkeyToken) throw WalletInitializationError.invalidParams("passkeyToken is required for rehydration");
+
+    try {
+      this.openloginInstance.state = sessionData;
+      let finalPrivKey = this._getFinalPrivKey();
+      if (!finalPrivKey) {
+        throw WalletLoginError.notConnectedError("Not connected with wallet, Please login/connect first");
+      }
+
+      if (finalPrivKey) {
+        if (this.currentChainNamespace === CHAIN_NAMESPACES.SOLANA) {
+          finalPrivKey = this._getFinalEd25519PrivKey();
+        }
+
+        await this.privateKeyProvider.setupProvider(finalPrivKey);
+      }
+
+      const sessionId = OpenloginSessionManager.generateRandomSessionKey();
+
+      const sessionManager = new OpenloginSessionManager({
+        sessionId,
+        sessionNamespace: this.openloginOptions.sessionNamespace,
+        sessionServerBaseUrl: this.openloginOptions.storageServerUrl,
+        sessionTime: this.openloginOptions.sessionTime,
+      });
+      const idToken = await getAuthToken({
+        sessionId,
+        userInfo: sessionData.userInfo,
+        wallets: jwtTokenPayload.wallets,
+        chainNamespace: this.currentChainNamespace,
+        provider: this.provider as IProvider,
+        options: this.openloginOptions,
+      });
+
+      if (idToken) {
+        sessionData.userInfo = { ...sessionData.userInfo, idToken };
+      }
+
+      await sessionManager.createSession(sessionData);
+
+      this.storageInstance.set("sessionId", sessionId);
+      this.storageInstance.set("passkey_token", passkeyToken);
+
+      await this.openloginInstance.init();
+
+      this.status = ADAPTER_STATUS.CONNECTED;
+      this.emit(ADAPTER_EVENTS.CONNECTED, {
+        adapter: WALLET_ADAPTERS.OPENLOGIN,
+        reconnected: this.rehydrated,
+        provider: this.provider,
+      } as CONNECTED_EVENT_DATA);
+    } catch (error) {
+      log.error("Failed to relogin with passkey", error);
+      throw error;
+    }
   }
 
   private _getFinalPrivKey() {

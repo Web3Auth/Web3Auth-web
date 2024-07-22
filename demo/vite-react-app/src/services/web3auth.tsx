@@ -3,10 +3,12 @@ import { Web3Auth } from "@web3auth/modal";
 import { WalletServicesPlugin } from "@web3auth/wallet-services-plugin";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
+import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { createContext, FunctionComponent, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { CHAIN_CONFIG, CHAIN_CONFIG_TYPE } from "../config/chainConfig";
 import { getWalletProvider, IWalletProvider } from "./walletProvider";
 import { PLUGIN_EVENTS } from "@web3auth/base";
+import { PasskeysPlugin } from "@web3auth/passkeys-pnp-plugin";
 import walletServiceProvider from "./walletServiceProvider";
 
 export interface IWeb3AuthContext {
@@ -75,6 +77,7 @@ export const Web3AuthProvider: FunctionComponent<IWeb3AuthState> = ({ children, 
   const [provider, setProvider] = useState<IWalletProvider | null>(null);
   const [waasProvider, setWaasProvider] = useState<IWalletProvider | null>(null);
   const [walletServicesPlugin, setWalletServicesPlugin] = useState<WalletServicesPlugin | null>(null);
+  const [passkeysPlugin, setPasskeysPlugin] = useState<PasskeysPlugin | null>(null);
   const [user, setUser] = useState<unknown | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -166,6 +169,34 @@ export const Web3AuthProvider: FunctionComponent<IWeb3AuthState> = ({ children, 
           },
           enableLogging: true,
         });
+
+        const openloginAdapter = new OpenloginAdapter({
+          loginSettings: {
+            mfaLevel: "optional",
+          },
+          adapterSettings: {
+            buildEnv: "production",
+            // uxMode: "redirect", // "redirect" | "popup"
+            whiteLabel: {
+              logoLight: "https://web3auth.io/images/web3auth-logo.svg",
+              logoDark: "https://web3auth.io/images/web3auth-logo.svg",
+              defaultLanguage: "en", // en, de, ja, ko, zh, es, fr, pt, nl, tr
+              mode: "dark", // whether to enable dark, light or auto mode. defaultValue: auto [ system theme]
+            },
+            loginConfig: {
+              google: {
+                verifier: "w3a-google-demo",
+                clientId: "519228911939-cri01h55lsjbsia1k7ll6qpalrus75ps.apps.googleusercontent.com",
+                typeOfLogin: "google",
+              },
+            },
+          },
+        });
+        web3AuthInstance.configureAdapter(openloginAdapter);
+
+        const localPasskeysPlugin = new PasskeysPlugin({ buildEnv: 'testing' });
+        web3AuthInstance.addPlugin(localPasskeysPlugin);
+        setPasskeysPlugin(localPasskeysPlugin);
 
         // Wallet Services Plugin
         if (currentChainConfig.chainNamespace !== CHAIN_NAMESPACES.SOLANA) {
@@ -347,6 +378,38 @@ export const Web3AuthProvider: FunctionComponent<IWeb3AuthState> = ({ children, 
     await walletServicesPlugin.showWalletConnectScanner();
   };
 
+  const registerWithPasskey = async () => { 
+    if (!passkeysPlugin) {
+      console.log("passkeysPlugin not initialized yet");
+      uiConsole("passkeysPlugin not initialized yet");
+      return;
+    }
+    const userInfo = await web3Auth?.getUserInfo();
+     
+    const res = await passkeysPlugin.registerPasskey({ 
+      username: `${userInfo?.typeOfLogin}|${userInfo?.email || userInfo?.name} - ${new Date().toLocaleDateString("en-GB")}`
+    });
+    if (res) uiConsole("Passkey registered successfully");
+  }
+
+  const loginWithPasskey = async () => { 
+    if (!passkeysPlugin) {
+      console.log("passkeysPlugin not initialized yet");
+      uiConsole("passkeysPlugin not initialized yet");
+      return;
+    }
+    await passkeysPlugin.loginWithPasskey();
+  }
+
+  const listAllPasskeys = async () => {
+    if (!passkeysPlugin) {
+      uiConsole("passkeysPlugin not initialized yet");
+      return;
+    }
+    const res = await passkeysPlugin?.listAllPasskeys();
+    uiConsole(res);
+  };
+
   const uiConsole = (...args: unknown[]): void => {
     const el = document.querySelector("#console>p");
     if (el) {
@@ -375,6 +438,9 @@ export const Web3AuthProvider: FunctionComponent<IWeb3AuthState> = ({ children, 
     randomContractInteraction,
     showWalletConnectScanner,
     enableMFA,
+    registerWithPasskey,
+    loginWithPasskey,
+    listAllPasskeys,
   };
   return <Web3AuthContext.Provider value={contextProvider}>{children}</Web3AuthContext.Provider>;
 };
