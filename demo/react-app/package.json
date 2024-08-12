@@ -16,7 +16,7 @@
     "@web3auth/wallet-services-plugin": "file:../../packages/plugins/wallet-services-plugin",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "web3": "^4.8.0"
+    "web3": "^4.10.0"
   },
   "scripts": {
     "start": "react-app-rewired start",
