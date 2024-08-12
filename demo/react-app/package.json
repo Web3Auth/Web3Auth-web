@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@solana/web3.js": "^1.91.7",
+    "@solana/web3.js": "^1.94.0",
     "@taquito/signer": "^19.2.0",
     "@taquito/taquito": "^19.2.0",
     "@taquito/utils": "^19.2.0",
