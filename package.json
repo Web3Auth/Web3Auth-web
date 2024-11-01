@@ -79,6 +79,7 @@
     "packages/composables/*",
     "packages/hooks/*",
     "packages/modal",
+    "packages/modal-ui",
     "packages/no-modal",
     "packages/plugins/*",
     "packages/providers/*",

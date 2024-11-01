@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "target": "ESNext",
+    "types": [
+      "vite/client"
+    ]
+  },
+  "extends": "../../tsconfig.json",
+  "include": [
+    "assets",
+    "css",
+    "src",
+    "test"
+  ]
+}

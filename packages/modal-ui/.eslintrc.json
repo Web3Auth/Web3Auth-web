@@ -1,0 +1,32 @@
+{
+  "env": {
+    "browser": true,
+    "es2020": true,
+    "node": true
+  },
+  "extends": [
+    "@toruslabs/eslint-config-react"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 11,
+    "project": "./tsconfig.json",
+    "sourceType": "module"
+  },
+  "root": true,
+  "rules": {
+    "@typescript-eslint/no-throw-literal": 0,
+    "import/extensions": [
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      },
+      "error",
+      "ignorePackages"
+    ],
+    "no-console": 2,
+    "react/no-is-mounted": 0
+  }
+}
