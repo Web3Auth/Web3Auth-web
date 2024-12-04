@@ -1,0 +1,6 @@
+# .prettierrc or .prettierrc.yaml
+printWidth: 150
+singleQuote: false
+semi: true
+htmlWhitespaceSensitivity: ignore
+trailingComma: es5

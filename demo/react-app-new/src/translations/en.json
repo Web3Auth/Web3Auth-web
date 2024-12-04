@@ -1,0 +1,77 @@
+{
+  "app": {
+    "title": "Web3Auth Web Vue Demo",
+    "description": "This is a demo of Web3Auth in a Vue.js app.",
+    "btnLogout": "Logout",
+    "documentation": "Documentation",
+    "network": "Network",
+    "chain": "Chain",
+    "loginProviders": "Login provider",
+    "adapters": "Adapters",
+    "greeting": "Let's configure Web3Auth!",
+    "enableWalletServicePlugin": "Enable Wallet Service Plugin",
+    "showWalletDiscovery": "Show Wallet Discovery",
+    "useAccountAbstractionProvider": "Account Abstraction Provider",
+    "useAAWithExternalWallet": "Use Account Abstraction Provider with External Wallet",
+    "smartAccountType": "Smart Account Type",
+    "bundlerUrl": "Bundler URL",
+    "paymasterUrl": "Paymaster URL",
+    "walletPlugin": {
+      "title": "Wallet Service Plugin",
+      "logoLight": "Logo Light",
+      "logoDark": "Logo Dark",
+      "enable": "Enable Wallet Service Plugin"
+    },
+    "whiteLabel": {
+      "title": "Enable White Label",
+      "appName": "App Name",
+      "appUrl": "App URL",
+      "defaultLanguage": "Default Language",
+      "logoLight": "Light Logo",
+      "logoDark": "Dark Logo",
+      "useLogoLoader": "Use Logo Loader",
+      "primary": "Primary Color",
+      "primaryColor": "On Primary Color"
+    },
+    "loginProvider": {
+      "name": "Name",
+      "description": "Description",
+      "logoHover": "Logo Hover",
+      "logoLight": "Logo Light",
+      "logoDark": "Logo Dark",
+      "mainOption": "Main Option",
+      "showOnModal": "on Modal?",
+      "showOnDesktop": "on Desktop?",
+      "showOnMobile": "on Mobile?"
+    },
+    "loginProviderTitle": "Login Provider",
+    "adapter": {
+      "sessionTime": "Session Time"
+    },
+    "chainNamespace": "Chain namespace",
+
+    "w3aStatus": "Web3Auth status ::::: {status}",
+    "isConnected": "Is connected ::::: {isConnected}",
+    "isInitialized": "Is initialized ::::: {isInitialized}",
+    "buttons": {
+      "btnClearConsole": "Clear Console",
+      "btnGetUserInfo": "Get User Info",
+      "btnGetAccounts": "Get Accounts",
+      "btnGetBalance": "Get Balance",
+      "btnSendEth": "Send ETH",
+      "btnSignEthMessage": "Sign ETH Message",
+      "btnGetConnectedChainId": "Get Connected Chain ID",
+      "btnAddChain": "Add Chain",
+      "btnSwitchChain": "Switch Chain",
+      "btnSignAndSendTransaction": "Sign and Send Transaction",
+      "btnSignTransaction": "Sign Transaction",
+      "btnSignMessage": "Sign Message",
+      "btnSignAllTransactions": "Sign All Transactions",
+      "btnShowWalletUI": "Show Wallet UI",
+      "btnShowCheckout": "Show Checkout",
+      "btnShowWalletConnectScanner": "Show WalletConnect Scanner",
+      "btnSignTypedData_v4": "Sign Typed Data v4",
+      "btnSignPersonalMsg": "Sign Personal Message"
+    }
+  }
+}

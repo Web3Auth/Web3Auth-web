@@ -7,7 +7,7 @@ export default defineConfig({
     // depending on your application, base can also be "/"
     base: '',
     plugins: [react(),   
-        nodePolyfills({ include: ['crypto', 'stream', 'assert', 'http', 'https', 'os', 'url', 'zlib'] })],
+    nodePolyfills({ include: ['crypto', 'stream', 'assert', 'http', 'https', 'os', 'url', 'zlib'] })],
     server: {    
         // this ensures that the browser opens upon server start
         open: true,
