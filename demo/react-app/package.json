@@ -5,7 +5,7 @@
   "dependencies": {
     "@solana/web3.js": "^1.95.3",
     "@taquito/signer": "^19.2.0",
-    "@taquito/taquito": "^19.2.0",
+    "@taquito/taquito": "^19.2.1",
     "@taquito/utils": "^19.2.0",
     "@tezos-core-tools/crypto-utils": "^0.0.7",
     "@web3auth/account-abstraction-provider": "file:../../packages/providers/account-abstraction-provider",
