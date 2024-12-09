@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Button, Card, Select, Tab, Tabs, Tag, TextField, Toggle } from "@toruslabs/vue-components";
 import { ADAPTER_STATUS, CHAIN_NAMESPACES, ChainNamespaceType, log } from "@web3auth/base";
+import { CHECKOUT_BUILD_ENV_TYPE, CheckoutPlugin } from "@web3auth/checkout-plugin";
 import { useWeb3Auth } from "@web3auth/modal-vue-composables";
 import { computed, InputHTMLAttributes, ref } from "vue";
 
@@ -86,6 +87,40 @@ const onChainNamespaceChange = (value: string) => {
   formData.chain = chainConfigs[value as ChainNamespaceType][0].chainId;
   formData.adapters = [];
 };
+
+const checkoutApiKey = {
+  production: "73efcf2f-f6d0-4f05-b630-0844adbc439e",
+  staging: "73efcf2f-f6d0-4f05-b630-0844adbc439e",
+  testing: "c6c30552-5c2f-4a30-a191-12646029c394",
+};
+
+const checkoutFormData = ref({
+  receiveWalletAddress: "0x0000000000000000000000000000000000000000",
+  buildEnv: "testing",
+  isDark: false,
+  primaryColorHex: "",
+  tokenList: "",
+  fiatList: "",
+  modalZIndex: 99999,
+  userId: "",
+  userEmail: "",
+  crypto: "",
+  fiat: "",
+  fiatAmount: "",
+  cryptoAmount: "",
+  strictMode: false,
+  chainId: "",
+});
+const onCheckoutClick = async () => {
+  const checkoutPlugin = new CheckoutPlugin({
+    ...checkoutFormData.value,
+    apiKey: checkoutApiKey[checkoutFormData.value.buildEnv as keyof typeof checkoutApiKey],
+    cryptoList: checkoutFormData.value.tokenList.split(",").map((x) => x.trim()),
+    fiatList: checkoutFormData.value.fiatList.split(",").map((x) => x.trim()),
+    buildEnv: checkoutFormData.value.buildEnv as CHECKOUT_BUILD_ENV_TYPE,
+  });
+  await checkoutPlugin.init();
+};
 </script>
 
 <template>
@@ -94,7 +129,7 @@ const onChainNamespaceChange = (value: string) => {
     <Card class="h-auto p-4 sm:p-8 col-span-8 sm:col-span-6 lg:col-span-4 max-sm:!shadow-none max-sm:!border-0">
       <div class="text-2xl font-bold leading-tight text-center sm:text-3xl">{{ $t("app.greeting") }}</div>
       <div class="my-4 font-extrabold leading-tight text-center">
-        <Tag v-bind="{ minWidth: 'inherit' }" :class="['uppercase', { '!bg-blue-400 text-white': status.value === ADAPTER_STATUS.READY }]">
+        <Tag v-bind="{ minWidth: 'inherit' }" :class="['uppercase', { '!bg-blue-400 text-white': status === ADAPTER_STATUS.READY }]">
           {{ status }}
         </Tag>
         &nbsp;
@@ -114,6 +149,9 @@ const onChainNamespaceChange = (value: string) => {
         </Tab>
         <Tab v-if="formData.chainNamespace === CHAIN_NAMESPACES.EIP155" variant="underline" :active="isActiveTab(5)" @click="onTabChange(5)">
           Account Abstraction Provider
+        </Tab>
+        <Tab v-if="formData.chainNamespace === CHAIN_NAMESPACES.EIP155" variant="underline" :active="isActiveTab(6)" @click="onTabChange(6)">
+          Checkout Plugin
         </Tab>
       </Tabs>
       <Card v-if="isActiveTab(0)" class="grid grid-cols-1 gap-2 px-4 py-4" :shadow="false">
@@ -233,7 +271,7 @@ const onChainNamespaceChange = (value: string) => {
               type="color"
               :value="formData.whiteLabel.config.theme?.primary"
               @input="
-                (e) => {
+                (e: Event) => {
                   const color = (e.target as InputHTMLAttributes).value;
                   formData.whiteLabel.config.theme = { ...formData.whiteLabel.config.theme, primary: color };
                 }
@@ -255,7 +293,7 @@ const onChainNamespaceChange = (value: string) => {
               type="color"
               :value="formData.whiteLabel.config.theme?.onPrimary"
               @input="
-                (e) => {
+                (e: Event) => {
                   const color = (e.target as InputHTMLAttributes).value;
                   formData.whiteLabel.config.theme = { ...formData.whiteLabel.config.theme, onPrimary: color };
                 }
@@ -429,7 +467,121 @@ const onChainNamespaceChange = (value: string) => {
           :disabled="isDisabled('paymasterUrl')"
         />
       </Card>
-      <div class="flex justify-center mt-5">
+      <Card v-if="isActiveTab(6)" class="grid grid-cols-1 gap-2 px-4 py-4" :shadow="false">
+        <div class="flex items-center justify-between gap-x-6">
+          <Select
+            v-model="checkoutFormData.buildEnv"
+            :label="$t('app.checkoutPlugin.buildEnv')"
+            :aria-label="$t('app.checkoutPlugin.buildEnv')"
+            :placeholder="$t('app.checkoutPlugin.buildEnv')"
+            :options="[
+              { name: 'production', value: 'production' },
+              { name: 'staging', value: 'staging' },
+              { name: 'testing', value: 'testing' },
+            ]"
+            helper-text="Select the build environment"
+          />
+          <TextField
+            v-model="checkoutFormData.primaryColorHex"
+            :label="$t('app.checkoutPlugin.primaryColorHex')"
+            :aria-label="$t('app.checkoutPlugin.primaryColorHex')"
+            placeholder="#000000"
+            helper-text="Enter the primary color hex code"
+          />
+        </div>
+        <div class="flex items-center justify-between gap-x-6">
+          <TextField
+            v-model="checkoutFormData.receiveWalletAddress"
+            :label="$t('app.checkoutPlugin.receiveWalletAddress')"
+            :aria-label="$t('app.checkoutPlugin.receiveWalletAddress')"
+            placeholder="0x1234567890"
+          />
+          <TextField
+            v-model="checkoutFormData.userId"
+            :label="$t('app.checkoutPlugin.userId')"
+            :aria-label="$t('app.checkoutPlugin.userId')"
+            placeholder="1234567890"
+          />
+        </div>
+        <div class="flex items-center justify-between gap-x-6">
+          <TextField
+            v-model="checkoutFormData.crypto"
+            :label="$t('app.checkoutPlugin.crypto')"
+            :aria-label="$t('app.checkoutPlugin.crypto')"
+            placeholder="ETH-ethereum"
+            helper-text="Enter the crypto currency symbol to show by default"
+          />
+          <TextField
+            v-model="checkoutFormData.fiat"
+            :label="$t('app.checkoutPlugin.fiat')"
+            :aria-label="$t('app.checkoutPlugin.fiat')"
+            placeholder="USD"
+            helper-text="Enter the fiat currency symbol to show by default"
+          />
+        </div>
+        <div class="flex items-center justify-between gap-x-6">
+          <TextField
+            v-model="checkoutFormData.cryptoAmount"
+            :label="$t('app.checkoutPlugin.cryptoAmount')"
+            :aria-label="$t('app.checkoutPlugin.cryptoAmount')"
+            placeholder="0.01"
+          />
+          <TextField
+            v-model="checkoutFormData.fiatAmount"
+            :label="$t('app.checkoutPlugin.fiatAmount')"
+            :aria-label="$t('app.checkoutPlugin.fiatAmount')"
+            placeholder="100"
+          />
+        </div>
+        <div class="flex items-center justify-between gap-x-6">
+          <TextField
+            v-model="checkoutFormData.userEmail"
+            :label="$t('app.checkoutPlugin.userEmail')"
+            :aria-label="$t('app.checkoutPlugin.userEmail')"
+            placeholder="example@gmail.com"
+          />
+          <TextField
+            v-model="checkoutFormData.chainId"
+            :label="$t('app.checkoutPlugin.chainId')"
+            :aria-label="$t('app.checkoutPlugin.chainId')"
+            placeholder="0x1"
+          />
+        </div>
+        <div class="flex items-center justify-between gap-x-6">
+          <TextField
+            v-model="checkoutFormData.tokenList"
+            :label="$t('app.checkoutPlugin.tokenList')"
+            :aria-label="$t('app.checkoutPlugin.tokenList')"
+            placeholder="ETH, USDC, USDT, XRP, BNB, ..."
+            helper-text="Enter the token symbols separated by commas will only show the tokens in the list"
+          />
+          <TextField
+            v-model="checkoutFormData.fiatList"
+            :label="$t('app.checkoutPlugin.fiatList')"
+            :aria-label="$t('app.checkoutPlugin.fiatList')"
+            placeholder="INR, USD, EUR, AED, AUD, ..."
+            helper-text="Enter the fiat currency symbols separated by commas will only show the currencies in the list"
+          />
+        </div>
+        <div class="flex items-center gap-x-6 mt-2">
+          <Toggle
+            v-model="checkoutFormData.isDark"
+            :show-label="true"
+            :size="'small'"
+            :label-disabled="$t('app.checkoutPlugin.isDark')"
+            :label-enabled="$t('app.checkoutPlugin.isDark')"
+          />
+          <Toggle
+            v-model="checkoutFormData.strictMode"
+            :show-label="true"
+            :size="'small'"
+            :label-disabled="$t('app.checkoutPlugin.strictMode')"
+            :label-enabled="$t('app.checkoutPlugin.strictMode')"
+          />
+        </div>
+        <Button class="mt-4" @click="onCheckoutClick">Checkout</Button>
+      </Card>
+      <div v-if="!isActiveTab(6)" class="flex justify-center mt-5">
         <Button
           :class="['w-full !h-auto group py-3 rounded-full flex items-center justify-center']"
           data-testid="loginButton"

@@ -1,0 +1,68 @@
+{
+  "author": "Torus Labs",
+  "bugs": {
+    "url": "https://github.com/Web3Auth/Web3Auth/issues"
+  },
+  "dependencies": {
+    "@toruslabs/base-controllers": "^6.2.4",
+    "@web3auth/auth": "^9.5.3",
+    "@web3auth/base": "^9.4.4",
+    "@web3auth/no-modal": "^9.4.4",
+    "@web3auth/ws-embed": "^3.1.0",
+    "loglevel": "^1.9.2"
+  },
+  "description": "Wallet services for which can be used with Web3Auth or private key providers used inside Web3Auth",
+  "devDependencies": {
+    "@toruslabs/ethereum-controllers": "^6.3.1"
+  },
+  "engines": {
+    "node": ">=18.x",
+    "npm": ">=9.x"
+  },
+  "files": [
+    "dist"
+  ],
+  "gitHead": "6c62ee11818e12b77eca33a78ee896e46549ac16",
+  "homepage": "https://github.com/Web3Auth/Web3Auth/tree/master/packages/plugins/wallet-services-plugin#readme",
+  "jsdelivr": "dist/checkoutPlugin.umd.min.js",
+  "keywords": [
+    "blockchain",
+    "ethereum",
+    "metamask",
+    "web3Auth",
+    "web3auth/checkout-plugin"
+  ],
+  "license": "ISC",
+  "lint-staged": {
+    "!(*d).ts": [
+      "eslint --cache --fix",
+      "prettier --write"
+    ]
+  },
+  "main": "dist/lib.cjs/index.js",
+  "module": "dist/lib.esm/index.js",
+  "name": "@web3auth/checkout-plugin",
+  "peerDependencies": {
+    "@babel/runtime": "^7.x"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Web3Auth/Web3Auth.git"
+  },
+  "scripts": {
+    "build": "torus-scripts build",
+    "dev": "torus-scripts start",
+    "lint": "eslint --fix 'src/**/*.ts'",
+    "pre-commit": "lint-staged --cwd .",
+    "prepack": "npm run build",
+    "test": "mocha --config ../../../.mocharc.json test/**.ts",
+    "test-debugger": "mocha --config ../../../.mocharc.json --inspect-brk test/**.ts"
+  },
+  "sideEffects": false,
+  "types": "dist/types/index.d.ts",
+  "unpkg": "dist/checkoutPlugin.umd.min.js",
+  "version": "9.4.4"
+}

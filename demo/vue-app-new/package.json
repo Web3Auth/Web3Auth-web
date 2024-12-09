@@ -22,6 +22,7 @@
     "@web3auth/base-evm-adapter": "file:../../packages/adapters/base-evm-adapter",
     "@web3auth/base-provider": "file:../../packages/providers/base-provider",
     "@web3auth/base-solana-adapter": "file:../../packages/adapters/base-solana-adapter",
+    "@web3auth/checkout-plugin": "file:../../packages/plugins/checkout-plugin",
     "@web3auth/coinbase-adapter": "file:../../packages/adapters/coinbase-adapter",
     "@web3auth/default-evm-adapter": "file:../../packages/adapters/default-evm-adapter",
     "@web3auth/default-solana-adapter": "file:../../packages/adapters/default-solana-adapter",
