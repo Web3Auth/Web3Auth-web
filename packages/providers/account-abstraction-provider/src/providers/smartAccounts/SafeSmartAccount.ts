@@ -1,6 +1,5 @@
-import { IProvider } from "@web3auth/base";
 import { toSafeSmartAccount } from "permissionless/accounts";
-import { Client, EIP1193Provider } from "viem";
+import { Client, WalletClient } from "viem";
 import { entryPoint07Address, SmartAccount } from "viem/account-abstraction";
 
 import { SMART_ACCOUNT } from "./constants";
@@ -23,7 +22,7 @@ export class SafeSmartAccount implements ISmartAccount {
   }
 
   async getSmartAccount(
-    params: { owner: IProvider; client: Client } & Pick<
+    params: { walletClient: WalletClient; client: Client } & Pick<
       SafeSmartAccountParameters,
       "address" | "nonceKey" | "saltNonce" | "validUntil" | "validAfter"
     >
@@ -36,7 +35,7 @@ export class SafeSmartAccount implements ISmartAccount {
       },
       version: this.options?.version || "1.4.1",
       ...params,
-      owners: [params.owner as EIP1193Provider],
+      owners: [params.walletClient],
       client: params.client,
     });
   }

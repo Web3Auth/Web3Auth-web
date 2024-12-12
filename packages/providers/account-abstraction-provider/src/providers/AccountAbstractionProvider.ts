@@ -1,7 +1,7 @@
 import { JRPCEngine, providerErrors, providerFromEngine } from "@web3auth/auth";
 import { CHAIN_NAMESPACES, CustomChainConfig, IProvider, WalletInitializationError } from "@web3auth/base";
 import { BaseProvider, BaseProviderConfig, BaseProviderState } from "@web3auth/base-provider";
-import { Client, createPublicClient, defineChain, http } from "viem";
+import { Client, createPublicClient, createWalletClient, custom, defineChain, Hex, http } from "viem";
 import { BundlerClient, createBundlerClient, createPaymasterClient, PaymasterClient, SmartAccount } from "viem/account-abstraction";
 
 import { createAaMiddleware, eoaProviderAsMiddleware } from "../rpc/ethRpcMiddlewares";
@@ -99,9 +99,18 @@ export class AccountAbstractionProvider extends BaseProvider<AccountAbstractionP
       chain,
       transport: http(this.config.chainConfig.rpcTarget),
     }) as Client;
+
+    // viem wallet client using json-rpc account from eoaProvider
+    // need to hoist the account address https://viem.sh/docs/clients/wallet#optional-hoist-the-account
+    const [eoaAddress] = await eoaProvider.request<never, string[]>({ method: "eth_accounts" });
+    const walletClient = createWalletClient({
+      account: eoaAddress as Hex,
+      chain,
+      transport: custom(eoaProvider),
+    });
     this._smartAccount = await this.config.smartAccountInit.getSmartAccount({
-      owner: eoaProvider,
       client: this._publicClient,
+      walletClient,
     });
 
     // setup bundler and paymaster

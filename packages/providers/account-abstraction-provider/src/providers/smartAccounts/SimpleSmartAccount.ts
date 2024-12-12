@@ -1,6 +1,5 @@
-import { IProvider } from "@web3auth/base";
 import { toSimpleSmartAccount } from "permissionless/accounts";
-import { Client, EIP1193Provider } from "viem";
+import { Client, WalletClient } from "viem";
 import { entryPoint07Address, SmartAccount } from "viem/account-abstraction";
 
 import { SMART_ACCOUNT } from "./constants";
@@ -19,14 +18,14 @@ export class SimpleSmartAccount implements ISmartAccount {
     this.options = options;
   }
 
-  async getSmartAccount(params: { owner: IProvider; client: Client }): Promise<SmartAccount> {
+  async getSmartAccount(params: { walletClient: WalletClient; client: Client }): Promise<SmartAccount> {
     return toSimpleSmartAccount({
       ...(this.options || {}),
       entryPoint: {
         address: this.options?.entryPoint?.address || entryPoint07Address,
         version: this.options?.entryPoint?.version || "0.7",
       },
-      owner: params.owner as EIP1193Provider,
+      owner: params.walletClient,
       client: params.client,
     });
   }

@@ -1,6 +1,5 @@
-import { IProvider } from "@web3auth/base";
 import { toNexusSmartAccount, ToNexusSmartAccountParameters } from "permissionless/accounts";
-import { Client, EIP1193Provider } from "viem";
+import { Client, WalletClient } from "viem";
 import { entryPoint07Address, SmartAccount } from "viem/account-abstraction";
 
 import { SMART_ACCOUNT } from "./constants";
@@ -18,7 +17,7 @@ export class NexusSmartAccount implements ISmartAccount {
   }
 
   async getSmartAccount(
-    params: { owner: IProvider; client: Client } & Pick<ToNexusSmartAccountParameters, "index" | "address">
+    params: { walletClient: WalletClient; client: Client } & Pick<ToNexusSmartAccountParameters, "index" | "address">
   ): Promise<SmartAccount> {
     return toNexusSmartAccount({
       ...(this.options || {}),
@@ -28,7 +27,7 @@ export class NexusSmartAccount implements ISmartAccount {
       },
       version: this.options?.version || "1.0.0",
       ...params,
-      owners: [params.owner as EIP1193Provider],
+      owners: [params.walletClient],
       client: params.client,
     });
   }

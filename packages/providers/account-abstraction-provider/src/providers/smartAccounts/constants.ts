@@ -6,4 +6,5 @@ export const SMART_ACCOUNT = {
   SAFE: "safe",
   SIMPLE: "simple",
   TRUST: "trust",
+  METAMASK: "metamask",
 };

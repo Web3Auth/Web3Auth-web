@@ -1,6 +1,5 @@
-import { IProvider } from "@web3auth/base";
 import { toTrustSmartAccount } from "permissionless/accounts";
-import { Client, EIP1193Provider } from "viem";
+import { Client, WalletClient } from "viem";
 import { entryPoint06Address, SmartAccount } from "viem/account-abstraction";
 
 import { SMART_ACCOUNT } from "./constants";
@@ -20,7 +19,7 @@ export class TrustSmartAccount implements ISmartAccount {
   }
 
   async getSmartAccount(
-    params: { owner: IProvider; client: Client } & Pick<TrustSmartAccountParameters, "address" | "nonceKey" | "index">
+    params: { walletClient: WalletClient; client: Client } & Pick<TrustSmartAccountParameters, "address" | "nonceKey" | "index">
   ): Promise<SmartAccount> {
     return toTrustSmartAccount({
       ...(this.options || {}),
@@ -29,7 +28,7 @@ export class TrustSmartAccount implements ISmartAccount {
         version: this.options?.entryPoint?.version || "0.6",
       },
       ...params,
-      owner: params.owner as EIP1193Provider,
+      owner: params.walletClient,
       client: params.client,
     });
   }

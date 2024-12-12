@@ -153,13 +153,14 @@ export const defaultLoginMethod: Record<LOGIN_PROVIDER_TYPE, FormConfigSettings>
   {} as Record<LOGIN_PROVIDER_TYPE, FormConfigSettings>
 );
 
-export type SmartAccountType = "safe" | "kernel" | "nexus" | "trust";
+export type SmartAccountType = "safe" | "kernel" | "nexus" | "trust" | "metamask";
 
 export const SmartAccountOptions: { name: string; value: SmartAccountType }[] = [
   { name: "Safe", value: "safe" },
   { name: "Nexus", value: "nexus" },
   { name: "Kernel", value: "kernel" },
   { name: "Trust", value: "trust" },
+  { name: "Metamask", value: "metamask" },
   // { name: "Light", value: "light" },
   // { name: "Simple", value: "simple" },
 ];

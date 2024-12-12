@@ -1,6 +1,6 @@
 import { addHexPrefix, isHexString } from "@ethereumjs/util";
 import { JRPCRequest, providerErrors } from "@web3auth/auth";
-import { IProvider, log } from "@web3auth/base";
+import { IProvider } from "@web3auth/base";
 import { IProviderHandlers, MessageParams, SignTypedDataMessageV4, TransactionParams, TypedMessageParams } from "@web3auth/ethereum-provider";
 import { Chain, createWalletClient, Hex, http } from "viem";
 import { BundlerClient, SendUserOperationParameters, SmartAccount } from "viem/account-abstraction";
@@ -28,8 +28,6 @@ export function getProviderHandlers({
         smartAccount.getAddress(),
         eoaProvider.request<never, string[]>({ method: "eth_accounts" }),
       ]);
-      log.info("smartAccounts", smartAccounts);
-      log.info("eoaAccounts", eoaAccounts);
       return [smartAccounts, ...eoaAccounts];
     },
     getPrivateKey: async (_: JRPCRequest<unknown>) => {

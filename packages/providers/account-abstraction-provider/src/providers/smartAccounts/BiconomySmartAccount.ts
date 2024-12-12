@@ -1,6 +1,5 @@
-import { IProvider } from "@web3auth/base";
 import { toBiconomySmartAccount, ToBiconomySmartAccountParameters } from "permissionless/accounts";
-import { Client, EIP1193Provider } from "viem";
+import { Client, WalletClient } from "viem";
 import { entryPoint06Address, SmartAccount } from "viem/account-abstraction";
 
 import { SMART_ACCOUNT } from "./constants";
@@ -18,7 +17,7 @@ export class BiconomySmartAccount implements ISmartAccount {
   }
 
   async getSmartAccount(
-    params: { owner: IProvider; client: Client } & Pick<ToBiconomySmartAccountParameters, "index" | "nonceKey" | "address">
+    params: { walletClient: WalletClient; client: Client } & Pick<ToBiconomySmartAccountParameters, "index" | "nonceKey" | "address">
   ): Promise<SmartAccount> {
     return toBiconomySmartAccount({
       ...(this.options || {}),
@@ -27,7 +26,7 @@ export class BiconomySmartAccount implements ISmartAccount {
         version: this.options?.entryPoint?.version || "0.6",
       },
       ...params,
-      owners: [params.owner as EIP1193Provider],
+      owners: [params.walletClient],
       client: params.client,
     });
   }

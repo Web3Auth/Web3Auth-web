@@ -1,6 +1,5 @@
-import { IProvider } from "@web3auth/base";
 import { toEcdsaKernelSmartAccount } from "permissionless/accounts";
-import { Client, EIP1193Provider } from "viem";
+import { Client, WalletClient } from "viem";
 import { SmartAccount } from "viem/account-abstraction";
 
 import { SMART_ACCOUNT } from "./constants";
@@ -20,12 +19,12 @@ export class KernelSmartAccount implements ISmartAccount {
   }
 
   async getSmartAccount(
-    params: { owner: IProvider; client: Client } & Pick<KernelSmartAccountParameters, "address" | "nonceKey" | "index">
+    params: { walletClient: WalletClient; client: Client } & Pick<KernelSmartAccountParameters, "address" | "nonceKey" | "index">
   ): Promise<SmartAccount> {
     return toEcdsaKernelSmartAccount({
       ...(this.options || {}),
       ...params,
-      owners: [params.owner as EIP1193Provider],
+      owners: [params.walletClient],
       client: params.client,
     });
   }

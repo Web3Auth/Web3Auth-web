@@ -20,6 +20,7 @@
     "pre-commit": "lint-staged --cwd ."
   },
   "dependencies": {
+    "@codefi/delegator-core-viem": "^0.4.0",
     "@ethereumjs/util": "^9.1.0",
     "@toruslabs/base-controllers": "^6.3.2",
     "@web3auth/auth": "^9.6.1",

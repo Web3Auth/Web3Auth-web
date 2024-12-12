@@ -3,6 +3,7 @@ import {
   AccountAbstractionProvider,
   ISmartAccount,
   KernelSmartAccount,
+  MetamaskSmartAccount,
   NexusSmartAccount,
   // LightSmartAccount,
   SafeSmartAccount,
@@ -108,6 +109,9 @@ const accountAbstractionProvider = computed((): IBaseProvider<IProvider> | undef
       break;
     case "trust":
       smartAccountInit = new TrustSmartAccount();
+      break;
+    case "metamask":
+      smartAccountInit = new MetamaskSmartAccount();
       break;
     // case "light":
     //   smartAccountInit = new LightSmartAccount();
