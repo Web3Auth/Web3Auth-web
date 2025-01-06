@@ -78,10 +78,14 @@
     "packages/base",
     "packages/composables/*",
     "packages/hooks/*",
+    "packages/modal-ui",
     "packages/modal",
     "packages/no-modal",
     "packages/plugins/*",
     "packages/providers/*",
     "packages/ui"
-  ]
+  ],
+  "dependencies": {
+    "tailwind-merge": "^2.5.4"
+  }
 }

@@ -4,6 +4,7 @@
   "compilerOptions": {
     "strict": true,
     "module": "esnext",
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "noImplicitAny": false
   }
 }

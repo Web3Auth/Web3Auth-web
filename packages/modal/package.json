@@ -9,6 +9,7 @@
     "@web3auth/base-provider": "^9.5.1",
     "@web3auth/no-modal": "^9.5.1",
     "@web3auth/ui": "^9.5.1",
+    "@web3auth/modal-ui": "^9.3.1",
     "deepmerge": "^4.3.1"
   },
   "devDependencies": {

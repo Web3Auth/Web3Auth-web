@@ -1,0 +1,58 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    padding: 0px !important;
+    margin: 0px !important;
+    box-sizing: border-box;
+  }
+
+  .w3a-parent-container {
+    font-family: "Inter";
+    position: relative;
+  }
+}
+
+@layer utilities {
+  .w3a--modal-bg {
+    @apply w3a--bg-app-light-surface1 dark:w3a--bg-app-dark-surface-main;
+  }
+  .w3a--loader-logo-size {
+    @apply w3a--h-10 w3a--w-10;
+  }
+
+  .w3a--header-logo-size {
+    @apply w3a--h-10 w3a--w-10;
+  }
+
+  .w3a--animate-circle {
+    @apply w3a--h-3 w3a--w-3 w3a--rounded-full w3a--bg-app-gray-200 dark:w3a--bg-app-gray-700 w3a--animate-pulse;
+  }
+
+  .w3a--bottom {
+    @apply w3a--bottom-1 w3a--left-[50%] w3a--translate-x-[-50%];
+  }
+
+  .w3a--bottom-sheet-bg {
+    @apply w3a--bg-app-gray-600 w3a--opacity-50;
+  }
+
+  .w3a--bottom-sheet-width {
+    @apply w3a--w-[98%];
+  }
+
+  .w3a--connected-logo {
+    @apply w3a--w-16 w3a--h-16 w3a--text-app-green-500 dark:w3a--text-app-green-400;
+  }
+
+  .w3a--error-logo {
+    @apply w3a--w-16 w3a--h-16 w3a--text-app-red-500 dark:w3a--text-app-red-400;
+  }
+
+  .w3a--t-btn {
+    @apply w3a--bg-app-gray-200 dark:w3a--bg-app-gray-500 w3a--text-app-gray-900 dark:w3a--text-app-white hover:w3a--bg-app-gray-300 dark:hover:w3a--bg-app-gray-400 disabled:w3a--bg-app-gray-300 disabled:w3a--text-app-gray-400 dark:disabled:w3a--bg-app-gray-700 dark:disabled:w3a--text-app-gray-600;
+  }
+}

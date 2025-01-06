@@ -23,7 +23,6 @@ import {
   WalletRegistry,
 } from "@web3auth/base";
 import { CommonJRPCProvider } from "@web3auth/base-provider";
-import { Web3AuthNoModal } from "@web3auth/no-modal";
 import {
   AUTH_PROVIDERS,
   capitalizeFirstLetter,
@@ -32,7 +31,8 @@ import {
   LOGIN_MODAL_EVENTS,
   LoginModal,
   UIConfig,
-} from "@web3auth/ui";
+} from "@web3auth/modal-ui";
+import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { WalletConnectV2Adapter } from "@web3auth/wallet-connect-v2-adapter";
 import deepmerge from "deepmerge";
 
@@ -301,7 +301,7 @@ export class Web3Auth extends Web3AuthNoModal implements IWeb3AuthModal {
         adapter.name,
         (this.modalConfig.adapters as Record<WALLET_ADAPTER_TYPE, ModalConfig>)[adapter.name]?.loginMethods
       );
-      if (Object.values(mergedLoginMethods).some((method: LoginMethodConfig[keyof LoginMethodConfig]) => method.showOnModal)) return true;
+      if (Object.values(mergedLoginMethods).some((method) => (method as LoginMethodConfig[keyof LoginMethodConfig]).showOnModal)) return true;
       return false;
     });
     log.debug(hasInAppWallets, this.walletAdapters, adapterNames, "hasInAppWallets");
@@ -401,8 +401,7 @@ export class Web3Auth extends Web3AuthNoModal implements IWeb3AuthModal {
             .then(() => {
               const adapterModalConfig = (this.modalConfig.adapters as Record<WALLET_ADAPTER_TYPE, ModalConfig>)[adapterName];
               adaptersConfig[adapterName] = { ...adapterModalConfig, isInjected: adapter.isInjected };
-              this.loginModal.addWalletLogins(adaptersConfig, { showExternalWalletsOnly: !!options?.showExternalWalletsOnly });
-              return undefined;
+              return this.loginModal.addWalletLogins(adaptersConfig, { showExternalWalletsOnly: !!options?.showExternalWalletsOnly });
             })
             .catch((error) => log.error(error, "error while initializing adapter", adapterName));
         } else if (adapter.status === ADAPTER_STATUS.READY || adapter.status === ADAPTER_STATUS.CONNECTING) {

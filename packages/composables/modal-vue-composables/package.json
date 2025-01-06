@@ -17,17 +17,9 @@
   "jsdelivr": "dist/modalVueComposables.umd.min.js",
   "types": "dist/types/index.d.ts",
   "author": "Torus Labs",
-  "homepage": "https://github.com/Web3Auth/Web3Auth/tree/master/packages/composables/modal-vue-composables#readme",
-  "license": "ISC",
-  "scripts": {
-    "dev": "torus-scripts start",
-    "build": "torus-scripts build",
-    "lint": "eslint --fix 'src/**/*.ts'",
-    "prepack": "npm run build"
+  "bugs": {
+    "url": "https://github.com/Web3Auth/Web3Auth/issues"
   },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "@web3auth/base": "^9.5.1",
     "@web3auth/modal": "^9.5.1"
@@ -36,6 +28,11 @@
     "@web3auth/auth": "^9.6.2",
     "@web3auth/auth-adapter": "^9.5.1"
   },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/Web3Auth/Web3Auth/tree/master/packages/composables/modal-vue-composables#readme",
+  "license": "ISC",
   "peerDependencies": {
     "@babel/runtime": "^7.x",
     "vue": "^3.4.x"
@@ -47,8 +44,11 @@
     "type": "git",
     "url": "git+https://github.com/Web3Auth/Web3Auth.git"
   },
-  "bugs": {
-    "url": "https://github.com/Web3Auth/Web3Auth/issues"
+  "scripts": {
+    "build": "torus-scripts build",
+    "dev": "torus-scripts start",
+    "lint": "eslint --fix 'src/**/*.ts'",
+    "prepack": "npm run build"
   },
   "engines": {
     "node": ">=18.x",
