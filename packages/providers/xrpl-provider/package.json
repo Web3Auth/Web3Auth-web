@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@types/elliptic": "6.4.18",
-    "xrpl": "^2.14.0"
+    "xrpl": "^4.1.0"
   },
   "peerDependencies": {
     "@babel/runtime": "7.x",
