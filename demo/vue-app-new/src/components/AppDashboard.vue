@@ -4,6 +4,7 @@ import { CHAIN_NAMESPACES, IProvider, log, WALLET_ADAPTERS, WALLET_PLUGINS } fro
 import { useWeb3Auth } from "@web3auth/modal-vue-composables";
 import { NFTCheckoutPlugin } from "@web3auth/nft-checkout-plugin";
 import { WalletServicesPlugin } from "@web3auth/wallet-services-plugin";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { NFT_CHECKOUT_CONTRACT_ID } from "../config";
@@ -27,32 +28,19 @@ const formData = formDataStore;
 
 const { userInfo, isConnected, provider, switchChain, addAndSwitchChain, web3Auth } = useWeb3Auth();
 
-const isDisplay = (name: string): boolean => {
-  switch (name) {
-    case "dashboard":
-      return isConnected.value;
+const connectedAdapterName = ref("");
 
-    case "ethServices":
-      return formData.chainNamespace === CHAIN_NAMESPACES.EIP155;
-
-    case "solServices":
-      return formData.chainNamespace === CHAIN_NAMESPACES.SOLANA;
-
-    case "walletServices":
-      return (
-        formData.chainNamespace === CHAIN_NAMESPACES.EIP155 &&
-        formData.walletPlugin.enable &&
-        web3Auth.value?.connectedAdapterName === WALLET_ADAPTERS.AUTH
-      );
-
-    case "nftCheckoutServices":
-      return formData.chainNamespace === CHAIN_NAMESPACES.EIP155 && formData.nftCheckoutPlugin.enable;
-
-    default: {
-      return false;
-    }
-  }
-};
+const isDisplay = computed(() => {
+  const finalConnectedAdapterName = connectedAdapterName.value || web3Auth.value?.connectedAdapterName;
+  return {
+    dashboard: isConnected.value,
+    ethServices: formData.chainNamespace === CHAIN_NAMESPACES.EIP155,
+    solServices: formData.chainNamespace === CHAIN_NAMESPACES.SOLANA,
+    walletServices:
+      formData.chainNamespace === CHAIN_NAMESPACES.EIP155 && formData.walletPlugin.enable && finalConnectedAdapterName === WALLET_ADAPTERS.AUTH,
+    nftCheckoutServices: formData.chainNamespace === CHAIN_NAMESPACES.EIP155 && formData.nftCheckoutPlugin.enable,
+  };
+});
 
 const clearConsole = () => {
   const el = document.querySelector("#console>pre");
@@ -209,10 +197,16 @@ const onSignTypedData_v4 = async () => {
 const onSignPersonalMsg = async () => {
   await signPersonalMessage(provider.value as IProvider, printToConsole);
 };
+
+onMounted(() => {
+  web3Auth.value?.on("connected", (data) => {
+    connectedAdapterName.value = data.adapter;
+  });
+});
 </script>
 
 <template>
-  <div v-if="isDisplay('dashboard')" class="w-full h-full px-10">
+  <div v-if="isDisplay.dashboard" class="w-full h-full px-10">
     <div class="grid h-full grid-cols-1 md:grid-cols-4 lg:grid-cols-6">
       <Card class="px-4 py-4 grid col-span-1 lg:col-span-2 h-full !rounded-3xl md:!rounded-r-none !shadow-none">
         <div class="mb-2">
@@ -225,7 +219,7 @@ const onSignPersonalMsg = async () => {
             {{ $t("app.buttons.btnGetUserInfo") }}
           </Button>
         </div>
-        <Card v-if="isDisplay('walletServices')" class="!h-auto lg:!h-[calc(100dvh_-_240px)] gap-4 px-4 py-4 mb-2" :shadow="false">
+        <Card v-if="isDisplay.walletServices" class="!h-auto lg:!h-[calc(100dvh_-_240px)] gap-4 px-4 py-4 mb-2" :shadow="false">
           <div class="mb-2 text-xl font-bold leading-tight text-left">Wallet Service</div>
           <Button block size="xs" pill class="mb-2" @click="showWalletUI">
             {{ $t("app.buttons.btnShowWalletUI") }}
@@ -244,7 +238,7 @@ const onSignPersonalMsg = async () => {
           </Button>
           <Button block size="xs" pill class="mb-2" @click="onWalletSendEth">{{ t("app.buttons.btnSendEth") }}</Button>
         </Card>
-        <Card v-if="isDisplay('nftCheckoutServices')" class="!h-auto lg:!h-[calc(100dvh_-_240px)] gap-4 px-4 py-4 mb-2" :shadow="false">
+        <Card v-if="isDisplay.nftCheckoutServices" class="!h-auto lg:!h-[calc(100dvh_-_240px)] gap-4 px-4 py-4 mb-2" :shadow="false">
           <div class="mb-2 text-xl font-bold leading-tight text-left">NFT Checkout Service</div>
           <Button block size="xs" pill class="mb-2" @click="showFreeMintNFTCheckout">
             {{ $t("app.buttons.btnShowFreeMintNFTCheckout") }}
@@ -253,7 +247,7 @@ const onSignPersonalMsg = async () => {
             {{ $t("app.buttons.btnShowPaidMintNFTCheckout") }}
           </Button>
         </Card>
-        <Card v-if="isDisplay('ethServices')" class="px-4 py-4 gap-4 !h-auto lg:!h-[calc(100dvh_-_240px)]" :shadow="false">
+        <Card v-if="isDisplay.ethServices" class="px-4 py-4 gap-4 !h-auto lg:!h-[calc(100dvh_-_240px)]" :shadow="false">
           <div class="mb-2 text-xl font-bold leading-tight text-left">Sample Transaction</div>
           <Button block size="xs" pill class="mb-2" @click="onGetAccounts">
             {{ t("app.buttons.btnGetAccounts") }}
@@ -277,7 +271,7 @@ const onSignPersonalMsg = async () => {
           </Button>
           <Button block size="xs" pill class="mb-2" @click="authenticateUser">Get id token</Button>
         </Card>
-        <Card v-if="isDisplay('solServices')" class="h-auto gap-4 px-4 py-4 mb-2" :shadow="false">
+        <Card v-if="isDisplay.solServices" class="h-auto gap-4 px-4 py-4 mb-2" :shadow="false">
           <div class="mb-2 text-xl font-bold leading-tight text-left">Sample Transaction</div>
           <Button block size="xs" pill class="mb-2" @click="onAddChain">{{ t("app.buttons.btnAddChain") }}</Button>
           <Button block size="xs" pill class="mb-2" @click="onSwitchChain">{{ t("app.buttons.btnSwitchChain") }}</Button>
