@@ -41,7 +41,7 @@
     "bs58": "^5.0.0",
     "ethers": "^6.13.3",
     "vue": "^3.5.11",
-    "vue-i18n": "^9.13.1"
+    "vue-i18n": "^9.14.2"
   },
   "devDependencies": {
     "@toruslabs/eslint-config-vue": "^3.3.4",
