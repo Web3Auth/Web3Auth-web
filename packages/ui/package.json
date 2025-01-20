@@ -51,7 +51,7 @@
     "autoprefixer": "^10.4.20",
     "css-loader": "^7.1.2",
     "live-server": "^1.2.2",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.1",
     "postcss-loader": "^8.1.1",
     "postcss-prefix-selector": "^2.1.0",
     "react": "^18.3.1",
@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@toruslabs/http-helpers": "^7.0.0",
-    "@web3auth/auth": "^9.6.2",
+    "@web3auth/auth": "^9.6.4",
     "@web3auth/base": "^9.5.2",
     "bowser": "^2.11.0",
     "classnames": "^2.5.1",

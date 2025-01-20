@@ -15,7 +15,7 @@
     "@svgr/webpack": "^8.1.0",
     "@toruslabs/isomorphic-style-loader": "^5.3.3",
     "@web3auth/account-abstraction-provider": "^9.5.2",
-    "@web3auth/auth": "^9.6.2",
+    "@web3auth/auth": "^9.6.4",
     "@web3auth/wallet-connect-v2-adapter": "^9.5.2",
     "css-loader": "^7.1.2",
     "postcss-prefix-selector": "^2.1.0",

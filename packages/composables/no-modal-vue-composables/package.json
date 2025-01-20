@@ -33,7 +33,7 @@
     "@web3auth/no-modal": "^9.5.2"
   },
   "devDependencies": {
-    "@web3auth/auth": "^9.6.2",
+    "@web3auth/auth": "^9.6.4",
     "@web3auth/auth-adapter": "^9.5.2"
   },
   "peerDependencies": {

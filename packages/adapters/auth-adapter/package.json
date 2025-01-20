@@ -35,7 +35,7 @@
     "@babel/runtime": "^7.x"
   },
   "dependencies": {
-    "@web3auth/auth": "^9.6.2",
+    "@web3auth/auth": "^9.6.4",
     "@web3auth/base": "^9.5.2",
     "@web3auth/base-provider": "^9.5.2",
     "deepmerge": "^4.3.1"

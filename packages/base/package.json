@@ -20,10 +20,10 @@
     "pre-commit": "lint-staged --cwd ."
   },
   "dependencies": {
-    "@toruslabs/base-controllers": "^7.0.1",
+    "@toruslabs/base-controllers": "^7.1.1",
     "@toruslabs/constants": "^14.2.0",
     "@toruslabs/http-helpers": "^7.0.0",
-    "@web3auth/auth": "^9.6.2",
+    "@web3auth/auth": "^9.6.4",
     "jwt-decode": "^4.0.0",
     "loglevel": "^1.9.2",
     "ts-custom-error": "^3.3.1"
